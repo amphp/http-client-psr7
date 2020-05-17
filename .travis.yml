@@ -1,0 +1,47 @@
+os: linux
+dist: xenial
+language: php
+
+php:
+  - 7.2
+  - 7.3
+  - 7.4
+  - nightly
+
+jobs:
+  allow_failures:
+    - php: nightly
+  fast_finish: true
+
+env:
+  - AMP_DEBUG=true
+
+before_install:
+  - phpenv config-rm xdebug.ini || echo "No xdebug config."
+  - pecl install pcov
+
+install:
+  - if [ "$TRAVIS_PHP_VERSION" = "nightly" ]; then
+      composer update -n --prefer-dist --ignore-platform-reqs;
+    else
+      composer update -n --prefer-dist;
+    fi
+
+  - wget https://github.com/php-coveralls/php-coveralls/releases/download/v2.2.0/php-coveralls.phar
+  - wget https://github.com/maglnet/ComposerRequireChecker/releases/download/2.0.0/composer-require-checker.phar
+
+  - composer show
+
+script:
+  - vendor/bin/phpunit --coverage-text --verbose --coverage-clover build/logs/clover.xml;
+  - php composer-require-checker.phar check composer.json --config-file $PWD/composer-require-check.json
+  - PHP_CS_FIXER_IGNORE_ENV=1 php vendor/bin/php-cs-fixer --diff --dry-run -v fix
+
+after_script:
+  - travis_retry php php-coveralls.phar -v
+
+cache:
+  directories:
+    - $HOME/.composer/cache
+    - $HOME/.php-cs-fixer
+    - $HOME/.local
