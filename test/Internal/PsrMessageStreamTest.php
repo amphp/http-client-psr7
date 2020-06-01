@@ -10,7 +10,7 @@ use Amp\PHPUnit\AsyncTestCase;
 use Amp\Success;
 
 /**
- * @covers \Amp\Http\Client\Internal\PsrMessageStream
+ * @covers \Amp\Http\Client\Psr7\Internal\PsrMessageStream
  */
 class PsrMessageStreamTest extends AsyncTestCase
 {

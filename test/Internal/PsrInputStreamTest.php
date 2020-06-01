@@ -7,7 +7,7 @@ use Laminas\Diactoros\StreamFactory;
 use Psr\Http\Message\StreamInterface;
 
 /**
- * @covers \Amp\Http\Client\Internal\PsrInputStream
+ * @covers \Amp\Http\Client\Psr7\Internal\PsrInputStream
  */
 class PsrInputStreamTest extends AsyncTestCase
 {
