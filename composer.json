@@ -26,6 +26,7 @@
         "amphp/amp": "^2.3",
         "amphp/http": "^1.5",
         "amphp/http-client": "^4",
+        "amphp/byte-stream": "^1.7",
         "psr/http-message": "^1",
         "psr/http-factory": "^1"
     },

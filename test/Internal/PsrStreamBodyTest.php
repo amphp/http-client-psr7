@@ -3,7 +3,6 @@
 namespace Amp\Http\Client\Psr7\Internal;
 
 use Amp\ByteStream\InputStream;
-use Amp\Http\Client\Psr7\Internal\PsrStreamBody;
 use Amp\PHPUnit\AsyncTestCase;
 use Amp\Promise;
 use Laminas\Diactoros\StreamFactory;

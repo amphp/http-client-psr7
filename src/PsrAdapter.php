@@ -4,8 +4,8 @@ namespace Amp\Http\Client\Psr7;
 
 use Amp\ByteStream\InputStream;
 use Amp\Coroutine;
-use Amp\Http\Client\Psr7\Internal\PsrStreamBody;
 use Amp\Http\Client\Psr7\Internal\PsrInputStream;
+use Amp\Http\Client\Psr7\Internal\PsrStreamBody;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
 use Amp\Promise;
