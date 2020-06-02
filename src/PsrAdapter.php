@@ -83,9 +83,20 @@ final class PsrAdapter
         );
     }
 
+    /**
+     * @param InputStream     $source
+     * @param StreamInterface $target
+     * @return \Generator
+     * @psalm-return \Generator<mixed,Promise>
+     */
     private function copyInputToPsrStream(InputStream $source, StreamInterface $target): \Generator
     {
-        while (null !== $data = yield $source->read()) {
+        while (true) {
+            /** @var string|null $data */
+            $data = yield $source->read();
+            if (!isset($data)) {
+                break;
+            }
             $target->write($data);
         }
         $target->rewind();
@@ -99,6 +110,7 @@ final class PsrAdapter
         $target = $requestFactory
             ->createRequest($source->getMethod(), $source->getUri());
         foreach ($source->getHeaders() as $headerName => $headerValues) {
+            /** @var string $headerName $target */
             $target = $target->withHeader($headerName, $headerValues);
         }
         $protocolVersions = $source->getProtocolVersions();
@@ -133,6 +145,7 @@ final class PsrAdapter
             ->createResponse($response->getStatus(), $response->getReason())
             ->withProtocolVersion($response->getProtocolVersion());
         foreach ($response->getHeaders() as $headerName => $headerValues) {
+            /** @var string $headerName */
             $psrResponse = $psrResponse->withHeader($headerName, $headerValues);
         }
 

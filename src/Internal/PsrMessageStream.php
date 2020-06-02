@@ -163,6 +163,7 @@ final class PsrMessageStream implements StreamInterface
 
             return '';
         }
+        /** @psalm-suppress RedundantConditionGivenDocblockType */
         if (\is_string($data)) {
             return $data;
         }
