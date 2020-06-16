@@ -51,10 +51,10 @@ Loop::run(function () {
 
 ```
 
-There are few incompatibilities between Amp and PSR-7 implementations that may requre special handling:
+There are few incompatibilities between Amp and PSR-7 implementations that may require special handling:
 
-- PSR-7 request contains only one protocol version, but Amp request can contain several. In this case adapter checks if protocol version list contains version that is default for current PSR-7 implementation, otherwise it throws an exception. You may also set protocol version explicitly using optional argument of `toPsrRequest()` method.
-- Amp response contains request istance, but PSR-7 response doesn't; so you need to provide request instance explicitly. 
+- PSR-7 requests contain only one protocol version, but Amp requests can contain several versions. In this case the adapter checks if the protocol version list contains a version that is the current PSR-7 implementation default, otherwise it throws an exception. You may also set the protocol version explicitly using the optional argument of the `toPsrRequest()` method.
+- Amp responses contain a reference to the `Request` instance, but PSR-7 responses don't; so you need to provide a request instance explicitly. 
 
 ## Examples
 
