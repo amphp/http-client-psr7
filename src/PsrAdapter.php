@@ -87,7 +87,7 @@ final class PsrAdapter
      * @param InputStream     $source
      * @param StreamInterface $target
      * @return \Generator
-     * @psalm-return \Generator<mixed,Promise>
+     * @psalm-return \Generator<mixed, Promise>
      */
     private function copyInputToPsrStream(InputStream $source, StreamInterface $target): \Generator
     {
