@@ -133,7 +133,7 @@ final class PsrMessageStream implements StreamInterface
             return '';
         }
 
-        /** @psalm-suppress RedundantConditionGivenDocblockType */
+        /** @psalm-suppress DocblockTypeContradiction */
         if (!\is_string($data)) {
             throw new \RuntimeException("Invalid data received from stream");
         }
