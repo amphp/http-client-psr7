@@ -26,22 +26,16 @@ final class PsrHttpClient
 
     /**
      * @param PsrRequest        $psrRequest
-     * @param CancellationToken $cancellationToken
+     * @param ?CancellationToken $cancellationToken
      *
-     * @return Promise<PsrResponse>
+     * @return PsrResponse
      */
-    public function request(PsrRequest $psrRequest, ?CancellationToken $cancellationToken = null): Promise
+    public function request(PsrRequest $psrRequest, ?CancellationToken $cancellationToken = null): PsrResponse
     {
-        return call(function () use ($psrRequest, $cancellationToken) {
-            $request = $this->psrAdapter->fromPsrRequest($psrRequest);
+        $request = $this->psrAdapter->fromPsrRequest($psrRequest);
 
-            /** @var Response $response */
-            $response = yield $this->httpClient->request($request, $cancellationToken);
+        $response = $this->httpClient->request($request, $cancellationToken);
 
-            /** @var PsrResponse $psrResponse */
-            $psrResponse = yield $this->psrAdapter->toPsrResponse($response);
-
-            return $psrResponse;
-        });
+        return $this->psrAdapter->toPsrResponse($response);
     }
 }

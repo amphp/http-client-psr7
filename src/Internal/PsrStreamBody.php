@@ -21,14 +21,14 @@ final class PsrStreamBody implements RequestBody
         $this->stream = $stream;
     }
 
-    public function getBodyLength(): Promise
+    public function getBodyLength(): ?int
     {
-        return new Success($this->stream->getSize() ?? -1);
+        return $this->stream->getSize() ?? -1;
     }
 
-    public function getHeaders(): Promise
+    public function getHeaders(): array
     {
-        return new Success([]);
+        return [];
     }
 
     public function createBodyStream(): InputStream

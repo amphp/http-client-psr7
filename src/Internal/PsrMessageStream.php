@@ -3,8 +3,9 @@
 namespace Amp\Http\Client\Psr7\Internal;
 
 use Amp\ByteStream\InputStream;
-use Amp\Promise;
 use Psr\Http\Message\StreamInterface;
+use function Amp\async;
+use function Amp\await;
 use function Amp\Promise\timeout;
 
 /**
@@ -126,16 +127,13 @@ final class PsrMessageStream implements StreamInterface
 
     private function readFromStream(): string
     {
-        $data = Promise\wait(timeout($this->getOpenStream()->read(), $this->timeout));
+        $data = await(timeout(async(function (): ?string {
+            return $this->getOpenStream()->read();
+        }), $this->timeout));
         if ($data === null) {
             $this->isEof = true;
 
             return '';
-        }
-
-        /** @psalm-suppress DocblockTypeContradiction */
-        if (!\is_string($data)) {
-            throw new \RuntimeException("Invalid data received from stream");
         }
 
         return $data;

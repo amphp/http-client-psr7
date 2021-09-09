@@ -8,11 +8,12 @@ use Amp\ByteStream\IteratorStream;
 use Amp\Emitter;
 use Amp\PHPUnit\AsyncTestCase;
 use Amp\Success;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Amp\Http\Client\Psr7\Internal\PsrMessageStream
  */
-class PsrMessageStreamTest extends AsyncTestCase
+class PsrMessageStreamTest extends TestCase
 {
     public function testToStringReturnsContentFromStream(): void
     {
@@ -204,19 +205,6 @@ class PsrMessageStreamTest extends AsyncTestCase
         $requestStream = new PsrMessageStream($inputStream);
 
         self::assertSame([], $requestStream->getMetadata());
-    }
-
-    public function testReadThrowsExceptionOnInvalidDataFromStream(): void
-    {
-        $inputStream = $this->createMock(InputStream::class);
-        $inputStream->method('read')->willReturn(new Success(1));
-
-        $requestStream = new PsrMessageStream($inputStream);
-
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Invalid data received from stream');
-
-        $requestStream->read(1);
     }
 
     /**
