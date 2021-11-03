@@ -36,7 +36,8 @@
         "amphp/windows-registry": "v1.x-dev",
         "amphp/process": "v2.x-dev",
         "psr/http-message": "^1",
-        "psr/http-factory": "^1"
+        "psr/http-factory": "^1",
+        "psr/http-client": "^1.0"
     },
     "require-dev": {
         "amphp/phpunit-util": "^1.4",
