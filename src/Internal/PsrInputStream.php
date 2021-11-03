@@ -3,8 +3,6 @@
 namespace Amp\Http\Client\Psr7\Internal;
 
 use Amp\ByteStream\InputStream;
-use Amp\Promise;
-use Amp\Success;
 use Psr\Http\Message\StreamInterface;
 
 /**

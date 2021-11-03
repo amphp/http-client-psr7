@@ -2,7 +2,6 @@
 
 namespace Amp\Http\Client\Psr7\Internal;
 
-use Amp\PHPUnit\AsyncTestCase;
 use Laminas\Diactoros\StreamFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;

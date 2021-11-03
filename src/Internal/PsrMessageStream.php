@@ -4,8 +4,7 @@ namespace Amp\Http\Client\Psr7\Internal;
 
 use Amp\ByteStream\InputStream;
 use Psr\Http\Message\StreamInterface;
-use function Amp\async;
-use function Amp\await;
+use function Amp\coroutine;
 use function Amp\Promise\timeout;
 
 /**
@@ -127,9 +126,10 @@ final class PsrMessageStream implements StreamInterface
 
     private function readFromStream(): string
     {
-        $data = await(timeout(async(function (): ?string {
+        // TODO timeout with $this->timeout
+        $data = coroutine(function (): ?string {
             return $this->getOpenStream()->read();
-        }), $this->timeout));
+        })->await();
         if ($data === null) {
             $this->isEof = true;
 

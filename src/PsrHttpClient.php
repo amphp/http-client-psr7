@@ -4,11 +4,8 @@ namespace Amp\Http\Client\Psr7;
 
 use Amp\CancellationToken;
 use Amp\Http\Client\HttpClient;
-use Amp\Http\Client\Response;
-use Amp\Promise;
 use Psr\Http\Message\RequestInterface as PsrRequest;
 use Psr\Http\Message\ResponseInterface as PsrResponse;
-use function Amp\call;
 
 final class PsrHttpClient
 {

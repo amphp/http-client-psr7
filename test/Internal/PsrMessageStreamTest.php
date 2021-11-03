@@ -4,10 +4,8 @@ namespace Amp\Http\Client\Psr7\Internal;
 
 use Amp\ByteStream\InMemoryStream;
 use Amp\ByteStream\InputStream;
-use Amp\ByteStream\IteratorStream;
-use Amp\Emitter;
-use Amp\PHPUnit\AsyncTestCase;
-use Amp\Success;
+use Amp\ByteStream\PipelineStream;
+use Amp\Pipeline\AsyncGenerator;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -224,11 +222,11 @@ class PsrMessageStreamTest extends TestCase
         string $expectedFirstResult,
         string $expectedSecondResult
     ): void {
-        $emitter = new Emitter();
-        $emitter->emit($firstChunk);
-        $emitter->emit($secondChunk);
+        $inputStream = new PipelineStream(new AsyncGenerator(function () use ($secondChunk, $firstChunk) {
+            yield $firstChunk;
+            yield $secondChunk;
+        }));
 
-        $inputStream = new IteratorStream($emitter->iterate());
         $requestStream = new PsrMessageStream($inputStream);
 
         self::assertSame($expectedFirstResult, $requestStream->read($firstChunkSize));

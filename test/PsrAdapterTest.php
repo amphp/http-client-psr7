@@ -8,17 +8,12 @@ use Amp\Http\Client\Request;
 use Amp\Http\Client\RequestBody;
 use Amp\Http\Client\Response;
 use Amp\Http\Status;
-use Amp\PHPUnit\AsyncTestCase;
-use Amp\Promise;
 use Laminas\Diactoros\Request as PsrRequest;
 use Laminas\Diactoros\RequestFactory;
 use Laminas\Diactoros\Response as PsrResponse;
 use Laminas\Diactoros\ResponseFactory;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
 use function Amp\ByteStream\buffer;
-use function Amp\call;
 
 /**
  * @covers \Amp\Http\Client\Psr7\PsrAdapter
