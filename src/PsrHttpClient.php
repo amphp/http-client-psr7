@@ -28,17 +28,12 @@ final class PsrHttpClient implements ClientInterface
      *
      * @return PsrResponse
      */
-    public function request(PsrRequest $psrRequest, ?CancellationToken $cancellationToken = null): PsrResponse
+    public function sendRequest(PsrRequest $psrRequest, ?CancellationToken $cancellationToken = null): PsrResponse
     {
         $request = $this->psrAdapter->fromPsrRequest($psrRequest);
 
         $response = $this->httpClient->request($request, $cancellationToken);
 
         return $this->psrAdapter->toPsrResponse($response);
-    }
-
-    public function sendRequest(PsrRequest $request): PsrResponse
-    {
-        return $this->request($request);
     }
 }
