@@ -2,15 +2,15 @@
 
 namespace Amp\Http\Client\Psr7\Internal;
 
-use Amp\PHPUnit\AsyncTestCase;
 use Laminas\Diactoros\StreamFactory;
+use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;
 use function Amp\ByteStream\buffer;
 
 /**
  * @covers \Amp\Http\Client\Psr7\Internal\PsrStreamBody
  */
-class PsrStreamBodyTest extends AsyncTestCase
+class PsrStreamBodyTest extends TestCase
 {
     /**
      * @param int|null $size
@@ -19,14 +19,14 @@ class PsrStreamBodyTest extends AsyncTestCase
      * @return \Generator
      * @dataProvider providerBodyLength
      */
-    public function testGetBodyLengthReturnsValueFromStream(?int $size, int $expectedSize): \Generator
+    public function testGetBodyLengthReturnsValueFromStream(?int $size, int $expectedSize): void
     {
         $stream = $this->createMock(StreamInterface::class);
         $stream->method('getSize')->willReturn($size);
 
         $body = new PsrStreamBody($stream);
 
-        self::assertSame($expectedSize, yield $body->getBodyLength());
+        self::assertSame($expectedSize, $body->getBodyLength());
     }
 
     public function providerBodyLength(): array
@@ -38,19 +38,19 @@ class PsrStreamBodyTest extends AsyncTestCase
         ];
     }
 
-    public function testGetHeadersReturnsEmptyList(): \Generator
+    public function testGetHeadersReturnsEmptyList(): void
     {
         $stream = $this->createMock(StreamInterface::class);
         $body = new PsrStreamBody($stream);
 
-        self::assertSame([], yield $body->getHeaders());
+        self::assertSame([], $body->getHeaders());
     }
 
-    public function testCreateBodyStreamResultReadsFromOriginalStream(): \Generator
+    public function testCreateBodyStreamResultReadsFromOriginalStream(): void
     {
         $stream = (new StreamFactory())->createStream('body_content');
         $body = new PsrStreamBody($stream);
 
-        self::assertSame('body_content', yield buffer($body->createBodyStream()));
+        self::assertSame('body_content', buffer($body->createBodyStream()));
     }
 }

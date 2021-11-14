@@ -3,8 +3,6 @@
 namespace Amp\Http\Client\Psr7\Internal;
 
 use Amp\ByteStream\InputStream;
-use Amp\Promise;
-use Amp\Success;
 use Psr\Http\Message\StreamInterface;
 
 /**
@@ -33,10 +31,10 @@ final class PsrInputStream implements InputStream
         $this->chunkSize = $chunkSize;
     }
 
-    public function read(): Promise
+    public function read(): ?string
     {
         if (!$this->stream->isReadable()) {
-            return new Success;
+            return null;
         }
 
         if ($this->tryRewind) {
@@ -48,11 +46,11 @@ final class PsrInputStream implements InputStream
         }
 
         if ($this->stream->eof()) {
-            return new Success;
+            return null;
         }
 
         $data = $this->stream->read($this->chunkSize);
 
-        return new Success($data);
+        return $data;
     }
 }

@@ -4,13 +4,11 @@ namespace Amp\Http\Client\Psr7;
 
 use Amp\CancellationToken;
 use Amp\Http\Client\HttpClient;
-use Amp\Http\Client\Response;
-use Amp\Promise;
+use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface as PsrRequest;
 use Psr\Http\Message\ResponseInterface as PsrResponse;
-use function Amp\call;
 
-final class PsrHttpClient
+final class PsrHttpClient implements ClientInterface
 {
     /** @var HttpClient */
     private $httpClient;
@@ -26,22 +24,16 @@ final class PsrHttpClient
 
     /**
      * @param PsrRequest        $psrRequest
-     * @param CancellationToken $cancellationToken
+     * @param ?CancellationToken $cancellationToken
      *
-     * @return Promise<PsrResponse>
+     * @return PsrResponse
      */
-    public function request(PsrRequest $psrRequest, ?CancellationToken $cancellationToken = null): Promise
+    public function sendRequest(PsrRequest $psrRequest, ?CancellationToken $cancellationToken = null): PsrResponse
     {
-        return call(function () use ($psrRequest, $cancellationToken) {
-            $request = $this->psrAdapter->fromPsrRequest($psrRequest);
+        $request = $this->psrAdapter->fromPsrRequest($psrRequest);
 
-            /** @var Response $response */
-            $response = yield $this->httpClient->request($request, $cancellationToken);
+        $response = $this->httpClient->request($request, $cancellationToken);
 
-            /** @var PsrResponse $psrResponse */
-            $psrResponse = yield $this->psrAdapter->toPsrResponse($response);
-
-            return $psrResponse;
-        });
+        return $this->psrAdapter->toPsrResponse($response);
     }
 }

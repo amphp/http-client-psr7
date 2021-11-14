@@ -2,14 +2,14 @@
 
 namespace Amp\Http\Client\Psr7\Internal;
 
-use Amp\PHPUnit\AsyncTestCase;
 use Laminas\Diactoros\StreamFactory;
+use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;
 
 /**
  * @covers \Amp\Http\Client\Psr7\Internal\PsrInputStream
  */
-class PsrInputStreamTest extends AsyncTestCase
+class PsrInputStreamTest extends TestCase
 {
     public function testConstructThrowsErrorOnInvalidChunkSize(): void
     {
@@ -21,17 +21,17 @@ class PsrInputStreamTest extends AsyncTestCase
         new PsrInputStream($stream, 0);
     }
 
-    public function testReadFromNonReadableStreamReturnsNull(): \Generator
+    public function testReadFromNonReadableStreamReturnsNull(): void
     {
         $stream = $this->createMock(StreamInterface::class);
         $stream->method('isReadable')->willReturn(false);
 
         $inputStream = new PsrInputStream($stream);
 
-        self::assertNull(yield $inputStream->read());
+        self::assertNull($inputStream->read());
     }
 
-    public function testReadFromReadableStreamAtEofReturnsNull(): \Generator
+    public function testReadFromReadableStreamAtEofReturnsNull(): void
     {
         $stream = $this->createMock(StreamInterface::class);
         $stream->method('isReadable')->willReturn(true);
@@ -39,10 +39,10 @@ class PsrInputStreamTest extends AsyncTestCase
 
         $inputStream = new PsrInputStream($stream);
 
-        self::assertNull(yield $inputStream->read());
+        self::assertNull($inputStream->read());
     }
 
-    public function testReadFromReadableStreamRewindsSeekableStream(): \Generator
+    public function testReadFromReadableStreamRewindsSeekableStream(): void
     {
         $stream = $this->createMock(StreamInterface::class);
         $stream->method('isReadable')->willReturn(true);
@@ -51,10 +51,10 @@ class PsrInputStreamTest extends AsyncTestCase
 
         $inputStream = new PsrInputStream($stream);
 
-        yield $inputStream->read();
+        $inputStream->read();
     }
 
-    public function testReadFromReadableStreamNeverRewindsNonSeekableStream(): \Generator
+    public function testReadFromReadableStreamNeverRewindsNonSeekableStream(): void
     {
         $stream = $this->createMock(StreamInterface::class);
         $stream->method('isReadable')->willReturn(true);
@@ -63,10 +63,10 @@ class PsrInputStreamTest extends AsyncTestCase
 
         $inputStream = new PsrInputStream($stream);
 
-        yield $inputStream->read();
+        $inputStream->read();
     }
 
-    public function testReadFromReadableStreamReturnsDataProvidedByStream(): \Generator
+    public function testReadFromReadableStreamReturnsDataProvidedByStream(): void
     {
         $stream = $this->createMock(StreamInterface::class);
         $stream->method('isReadable')->willReturn(true);
@@ -75,15 +75,15 @@ class PsrInputStreamTest extends AsyncTestCase
 
         $inputStream = new PsrInputStream($stream, 5);
 
-        self::assertSame('abcde', yield $inputStream->read());
+        self::assertSame('abcde', $inputStream->read());
     }
 
     /**
      * @param string $sourceData
-     * @param int    $chunkSize
+     * @param int $chunkSize
      * @param string $firstChunk
      * @param string $secondChunk
-     * @return \Generator
+     * @return void
      * @dataProvider providerStreamData
      */
     public function testReadReturnsMatchingDataFromStream(
@@ -91,13 +91,13 @@ class PsrInputStreamTest extends AsyncTestCase
         int $chunkSize,
         string $firstChunk,
         string $secondChunk
-    ): \Generator {
+    ): void {
         $stream = (new StreamFactory())->createStream($sourceData);
 
         $inputStream = new PsrInputStream($stream, $chunkSize);
 
-        self::assertSame($firstChunk, (yield $inputStream->read()) ?? '');
-        self::assertSame($secondChunk, (yield $inputStream->read()) ?? '');
+        self::assertSame($firstChunk, ($inputStream->read()) ?? '');
+        self::assertSame($secondChunk, ($inputStream->read()) ?? '');
     }
 
     public function providerStreamData(): array

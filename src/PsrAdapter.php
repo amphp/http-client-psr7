@@ -8,13 +8,11 @@ use Amp\Http\Client\Psr7\Internal\PsrInputStream;
 use Amp\Http\Client\Psr7\Internal\PsrStreamBody;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
-use Amp\Promise;
 use Psr\Http\Message\RequestFactoryInterface as PsrRequestFactory;
 use Psr\Http\Message\RequestInterface as PsrRequest;
 use Psr\Http\Message\ResponseFactoryInterface as PsrResponseFactory;
 use Psr\Http\Message\ResponseInterface as PsrResponse;
 use Psr\Http\Message\StreamInterface;
-use function Amp\call;
 
 final class PsrAdapter
 {
@@ -73,27 +71,25 @@ final class PsrAdapter
      * @param Request     $source
      * @param string|null $protocolVersion
      *
-     * @return Promise<PsrRequest>
+     * @return PsrRequest
      */
     public function toPsrRequest(
         Request $source,
         ?string $protocolVersion = null
-    ): Promise {
-        return call(function () use ($source, $protocolVersion) {
-            $target = $this->toPsrRequestWithoutBody($source, $protocolVersion);
+    ): PsrRequest {
+        $target = $this->toPsrRequestWithoutBody($source, $protocolVersion);
 
-            yield $this->copyToPsrStream($source->getBody()->createBodyStream(), $target->getBody());
+        $this->copyToPsrStream($source->getBody()->createBodyStream(), $target->getBody());
 
-            return $target;
-        });
+        return $target;
     }
 
     /**
      * @param Response $response
      *
-     * @return Promise<PsrResponse>
+     * @return PsrResponse
      */
-    public function toPsrResponse(Response $response): Promise
+    public function toPsrResponse(Response $response): PsrResponse
     {
         $psrResponse = $this->responseFactory->createResponse($response->getStatus(), $response->getReason())
             ->withProtocolVersion($response->getProtocolVersion());
@@ -102,22 +98,18 @@ final class PsrAdapter
             $psrResponse = $psrResponse->withAddedHeader($headerName, $headerValue);
         }
 
-        return call(function () use ($psrResponse, $response) {
-            yield $this->copyToPsrStream($response->getBody(), $psrResponse->getBody());
+        $this->copyToPsrStream($response->getBody(), $psrResponse->getBody());
 
-            return $psrResponse;
-        });
+        return $psrResponse;
     }
 
-    private function copyToPsrStream(InputStream $source, StreamInterface $target): Promise
+    private function copyToPsrStream(InputStream $source, StreamInterface $target): void
     {
-        return call(static function () use ($source, $target) {
-            while (null !== $data = yield $source->read()) {
-                $target->write($data);
-            }
+        while (null !== $data = $source->read()) {
+            $target->write($data);
+        }
 
-            $target->rewind();
-        });
+        $target->rewind();
     }
 
     private function toPsrRequestWithoutBody(

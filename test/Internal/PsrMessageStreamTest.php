@@ -4,15 +4,14 @@ namespace Amp\Http\Client\Psr7\Internal;
 
 use Amp\ByteStream\InMemoryStream;
 use Amp\ByteStream\InputStream;
-use Amp\ByteStream\IteratorStream;
-use Amp\Emitter;
-use Amp\PHPUnit\AsyncTestCase;
-use Amp\Success;
+use Amp\ByteStream\PipelineStream;
+use Amp\Pipeline\AsyncGenerator;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Amp\Http\Client\Psr7\Internal\PsrMessageStream
  */
-class PsrMessageStreamTest extends AsyncTestCase
+class PsrMessageStreamTest extends TestCase
 {
     public function testToStringReturnsContentFromStream(): void
     {
@@ -206,19 +205,6 @@ class PsrMessageStreamTest extends AsyncTestCase
         self::assertSame([], $requestStream->getMetadata());
     }
 
-    public function testReadThrowsExceptionOnInvalidDataFromStream(): void
-    {
-        $inputStream = $this->createMock(InputStream::class);
-        $inputStream->method('read')->willReturn(new Success(1));
-
-        $requestStream = new PsrMessageStream($inputStream);
-
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Invalid data received from stream');
-
-        $requestStream->read(1);
-    }
-
     /**
      * @param string|null $firstChunk
      * @param string|null $secondChunk
@@ -236,11 +222,11 @@ class PsrMessageStreamTest extends AsyncTestCase
         string $expectedFirstResult,
         string $expectedSecondResult
     ): void {
-        $emitter = new Emitter();
-        $emitter->emit($firstChunk);
-        $emitter->emit($secondChunk);
+        $inputStream = new PipelineStream(new AsyncGenerator(function () use ($secondChunk, $firstChunk) {
+            yield $firstChunk;
+            yield $secondChunk;
+        }));
 
-        $inputStream = new IteratorStream($emitter->iterate());
         $requestStream = new PsrMessageStream($inputStream);
 
         self::assertSame($expectedFirstResult, $requestStream->read($firstChunkSize));
