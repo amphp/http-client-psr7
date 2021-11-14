@@ -12,14 +12,11 @@ final class PsrInputStream implements InputStream
 {
     private const DEFAULT_CHUNK_SIZE = 8192;
 
-    /** @var StreamInterface */
-    private $stream;
+    private StreamInterface $stream;
 
-    /** @var int */
-    private $chunkSize;
+    private int $chunkSize;
 
-    /** @var bool */
-    private $tryRewind = true;
+    private bool $tryRewind = true;
 
     public function __construct(StreamInterface $stream, int $chunkSize = self::DEFAULT_CHUNK_SIZE)
     {
@@ -49,8 +46,6 @@ final class PsrInputStream implements InputStream
             return null;
         }
 
-        $data = $this->stream->read($this->chunkSize);
-
-        return $data;
+        return $this->stream->read($this->chunkSize);
     }
 }

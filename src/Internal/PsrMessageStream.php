@@ -3,9 +3,9 @@
 namespace Amp\Http\Client\Psr7\Internal;
 
 use Amp\ByteStream\InputStream;
+use Amp\TimeoutCancellationToken;
 use Psr\Http\Message\StreamInterface;
 use function Amp\coroutine;
-use function Amp\Promise\timeout;
 
 /**
  * @internal
@@ -14,17 +14,13 @@ final class PsrMessageStream implements StreamInterface
 {
     private const DEFAULT_TIMEOUT = 5000;
 
-    /** @var InputStream|null */
-    private $stream;
+    private ?InputStream $stream;
 
-    /** @var int */
-    private $timeout;
+    private int $timeout;
 
-    /** @var string */
-    private $buffer = '';
+    private string $buffer = '';
 
-    /** @var bool */
-    private $isEof = false;
+    private bool $isEof = false;
 
     public function __construct(InputStream $stream, int $timeout = self::DEFAULT_TIMEOUT)
     {
@@ -36,7 +32,7 @@ final class PsrMessageStream implements StreamInterface
     {
         try {
             return $this->getContents();
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             return '';
         }
     }
@@ -46,51 +42,6 @@ final class PsrMessageStream implements StreamInterface
         $this->stream = null;
     }
 
-    public function eof(): bool
-    {
-        return $this->isEof;
-    }
-
-    public function tell(): int
-    {
-        throw new \RuntimeException("Source stream is not seekable");
-    }
-
-    public function getSize(): ?int
-    {
-        return null;
-    }
-
-    public function isSeekable(): bool
-    {
-        return false;
-    }
-
-    public function seek($offset, $whence = SEEK_SET): void
-    {
-        throw new \RuntimeException("Source stream is not seekable");
-    }
-
-    public function rewind(): void
-    {
-        throw new \RuntimeException("Source stream is not seekable");
-    }
-
-    public function isWritable(): bool
-    {
-        return false;
-    }
-
-    public function write($string): int
-    {
-        throw new \RuntimeException("Source stream is not writable");
-    }
-
-    public function getMetadata($key = null)
-    {
-        return $key === null ? [] : null;
-    }
-
     public function detach()
     {
         $this->stream = null;
@@ -98,9 +49,43 @@ final class PsrMessageStream implements StreamInterface
         return null;
     }
 
+    public function eof(): bool
+    {
+        return $this->isEof;
+    }
+
+    public function getContents(): string
+    {
+        while (!$this->isEof) {
+            $this->buffer .= $this->readFromStream();
+        }
+
+        return $this->buffer;
+    }
+
+    public function getMetadata($key = null)
+    {
+        return $key === null ? [] : null;
+    }
+
+    public function getSize(): ?int
+    {
+        return null;
+    }
+
     public function isReadable(): bool
     {
         return $this->stream !== null;
+    }
+
+    public function isSeekable(): bool
+    {
+        return false;
+    }
+
+    public function isWritable(): bool
+    {
+        return false;
     }
 
     public function read($length): string
@@ -115,28 +100,24 @@ final class PsrMessageStream implements StreamInterface
         return $data;
     }
 
-    public function getContents(): string
+    public function rewind(): void
     {
-        while (!$this->isEof) {
-            $this->buffer .= $this->readFromStream();
-        }
-
-        return $this->buffer;
+        throw new \RuntimeException("Source stream is not seekable");
     }
 
-    private function readFromStream(): string
+    public function seek($offset, $whence = SEEK_SET): void
     {
-        // TODO timeout with $this->timeout
-        $data = coroutine(function (): ?string {
-            return $this->getOpenStream()->read();
-        })->await();
-        if ($data === null) {
-            $this->isEof = true;
+        throw new \RuntimeException("Source stream is not seekable");
+    }
 
-            return '';
-        }
+    public function tell(): int
+    {
+        throw new \RuntimeException("Source stream is not seekable");
+    }
 
-        return $data;
+    public function write($string): int
+    {
+        throw new \RuntimeException("Source stream is not writable");
     }
 
     private function getOpenStream(): InputStream
@@ -146,5 +127,20 @@ final class PsrMessageStream implements StreamInterface
         }
 
         return $this->stream;
+    }
+
+    private function readFromStream(): string
+    {
+        $data = coroutine(function (): ?string {
+            return $this->getOpenStream()->read();
+        })->await(new TimeoutCancellationToken($this->timeout));
+
+        if ($data === null) {
+            $this->isEof = true;
+
+            return '';
+        }
+
+        return $data;
     }
 }

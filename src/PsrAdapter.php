@@ -16,11 +16,8 @@ use Psr\Http\Message\StreamInterface;
 
 final class PsrAdapter
 {
-    /** @var PsrRequestFactory */
-    private $requestFactory;
-
-    /** @var PsrResponseFactory */
-    private $responseFactory;
+    private PsrRequestFactory $requestFactory;
+    private PsrResponseFactory $responseFactory;
 
     public function __construct(PsrRequestFactory $requestFactory, PsrResponseFactory $responseFactory)
     {
@@ -28,11 +25,6 @@ final class PsrAdapter
         $this->responseFactory = $responseFactory;
     }
 
-    /**
-     * @param PsrRequest $source
-     *
-     * @return Request
-     */
     public function fromPsrRequest(PsrRequest $source): Request
     {
         $target = new Request($source->getUri(), $source->getMethod());
@@ -43,18 +35,8 @@ final class PsrAdapter
         return $target;
     }
 
-    /**
-     * @param PsrResponse   $source
-     * @param Request       $request
-     * @param Response|null $previousResponse
-     *
-     * @return Response
-     */
-    public function fromPsrResponse(
-        PsrResponse $source,
-        Request $request,
-        ?Response $previousResponse = null
-    ): Response {
+    public function fromPsrResponse(PsrResponse $source, Request $request, ?Response $previousResponse = null): Response
+    {
         return new Response(
             $source->getProtocolVersion(),
             $source->getStatusCode(),
@@ -67,16 +49,8 @@ final class PsrAdapter
         );
     }
 
-    /**
-     * @param Request     $source
-     * @param string|null $protocolVersion
-     *
-     * @return PsrRequest
-     */
-    public function toPsrRequest(
-        Request $source,
-        ?string $protocolVersion = null
-    ): PsrRequest {
+    public function toPsrRequest(Request $source, ?string $protocolVersion = null): PsrRequest
+    {
         $target = $this->toPsrRequestWithoutBody($source, $protocolVersion);
 
         $this->copyToPsrStream($source->getBody()->createBodyStream(), $target->getBody());

@@ -11,12 +11,16 @@ use Psr\Http\Message\StreamInterface;
  */
 final class PsrStreamBody implements RequestBody
 {
-    /** @var StreamInterface */
-    private $stream;
+    private StreamInterface $stream;
 
     public function __construct(StreamInterface $stream)
     {
         $this->stream = $stream;
+    }
+
+    public function createBodyStream(): InputStream
+    {
+        return new PsrInputStream($this->stream);
     }
 
     public function getBodyLength(): ?int
@@ -27,10 +31,5 @@ final class PsrStreamBody implements RequestBody
     public function getHeaders(): array
     {
         return [];
-    }
-
-    public function createBodyStream(): InputStream
-    {
-        return new PsrInputStream($this->stream);
     }
 }

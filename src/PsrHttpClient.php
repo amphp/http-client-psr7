@@ -10,11 +10,8 @@ use Psr\Http\Message\ResponseInterface as PsrResponse;
 
 final class PsrHttpClient implements ClientInterface
 {
-    /** @var HttpClient */
-    private $httpClient;
-
-    /** @var PsrAdapter */
-    private $psrAdapter;
+    private HttpClient $httpClient;
+    private PsrAdapter $psrAdapter;
 
     public function __construct(HttpClient $client, PsrAdapter $psrAdapter)
     {
@@ -23,16 +20,16 @@ final class PsrHttpClient implements ClientInterface
     }
 
     /**
-     * @param PsrRequest        $psrRequest
-     * @param ?CancellationToken $cancellationToken
+     * @param PsrRequest             $request
+     * @param CancellationToken|null $cancellation
      *
      * @return PsrResponse
      */
-    public function sendRequest(PsrRequest $psrRequest, ?CancellationToken $cancellationToken = null): PsrResponse
+    public function sendRequest(PsrRequest $request, ?CancellationToken $cancellation = null): PsrResponse
     {
-        $request = $this->psrAdapter->fromPsrRequest($psrRequest);
+        $internalRequest = $this->psrAdapter->fromPsrRequest($request);
 
-        $response = $this->httpClient->request($request, $cancellationToken);
+        $response = $this->httpClient->request($internalRequest, $cancellation);
 
         return $this->psrAdapter->toPsrResponse($response);
     }
