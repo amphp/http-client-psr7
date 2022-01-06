@@ -2,7 +2,7 @@
 
 namespace Amp\Http\Client\Psr7;
 
-use Amp\ByteStream\InMemoryStream;
+use Amp\ByteStream\ReadableBuffer;
 use Amp\Http\Client\HttpException;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\RequestBody;
@@ -173,7 +173,7 @@ class PsrAdapterTest extends TestCase
             Status::OK,
             null,
             [],
-            new InMemoryStream(''),
+            new ReadableBuffer(''),
             new Request('')
         );
 
@@ -191,7 +191,7 @@ class PsrAdapterTest extends TestCase
             Status::NOT_FOUND,
             null,
             [],
-            new InMemoryStream(''),
+            new ReadableBuffer(''),
             new Request('')
         );
 
@@ -209,7 +209,7 @@ class PsrAdapterTest extends TestCase
             Status::OK,
             'a',
             [],
-            new InMemoryStream(''),
+            new ReadableBuffer(''),
             new Request('')
         );
 
@@ -227,7 +227,7 @@ class PsrAdapterTest extends TestCase
             Status::OK,
             null,
             ['a' => 'b', 'c' => ['d', 'e']],
-            new InMemoryStream(''),
+            new ReadableBuffer(''),
             new Request('')
         );
 
@@ -245,7 +245,7 @@ class PsrAdapterTest extends TestCase
             Status::OK,
             null,
             [],
-            new InMemoryStream('body_content'),
+            new ReadableBuffer('body_content'),
             new Request('')
         );
 
@@ -289,7 +289,7 @@ class PsrAdapterTest extends TestCase
             Status::OK,
             null,
             [],
-            new InMemoryStream(''),
+            new ReadableBuffer(''),
             new Request('')
         );
 

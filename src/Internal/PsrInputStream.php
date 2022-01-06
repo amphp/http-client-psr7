@@ -2,13 +2,14 @@
 
 namespace Amp\Http\Client\Psr7\Internal;
 
-use Amp\ByteStream\InputStream;
+use Amp\ByteStream\ReadableStream;
+use Amp\Cancellation;
 use Psr\Http\Message\StreamInterface;
 
 /**
  * @internal
  */
-final class PsrInputStream implements InputStream
+final class PsrInputStream implements ReadableStream
 {
     private const DEFAULT_CHUNK_SIZE = 8192;
 
@@ -28,7 +29,7 @@ final class PsrInputStream implements InputStream
         $this->chunkSize = $chunkSize;
     }
 
-    public function read(): ?string
+    public function read(?Cancellation $cancellation = null): ?string
     {
         if (!$this->stream->isReadable()) {
             return null;
@@ -47,5 +48,20 @@ final class PsrInputStream implements InputStream
         }
 
         return $this->stream->read($this->chunkSize);
+    }
+
+    public function close(): void
+    {
+        $this->stream->close();
+    }
+
+    public function isClosed(): bool
+    {
+        return $this->isReadable();
+    }
+
+    public function isReadable(): bool
+    {
+        return $this->stream->isReadable();
     }
 }
