@@ -2,6 +2,7 @@
 
 namespace Amp\Http\Client\Psr7\Internal;
 
+use Amp\ByteStream\IterableStream;
 use Amp\ByteStream\PendingReadError;
 use Amp\ByteStream\ReadableBuffer;
 use Amp\ByteStream\ReadableStream;
@@ -224,35 +225,10 @@ class PsrMessageStreamTest extends TestCase
         string $expectedFirstResult,
         string $expectedSecondResult
     ): void {
-        $inputStream = new class(new AsyncGenerator(function () use ($secondChunk, $firstChunk) {
+        $inputStream = new IterableStream(new AsyncGenerator(function () use ($secondChunk, $firstChunk) {
             yield $firstChunk;
             yield $secondChunk;
-        }))  implements ReadableStream {
-
-            public function __construct(private AsyncGenerator $generator)
-            {
-            }
-
-            public function close(): void
-            {
-                $this->generator->dispose();
-            }
-
-            public function isClosed(): bool
-            {
-                return $this->generator->isComplete();
-            }
-
-            public function read(?Cancellation $cancellation = null): ?string
-            {
-                return $this->generator->continue();
-            }
-
-            public function isReadable(): bool
-            {
-                return !$this->isClosed();
-            }
-        };
+        }));
 
         $requestStream = new PsrMessageStream($inputStream);
 
