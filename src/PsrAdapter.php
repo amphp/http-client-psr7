@@ -3,6 +3,7 @@
 namespace Amp\Http\Client\Psr7;
 
 use Amp\ByteStream\InputStream;
+use Amp\ByteStream\ReadableStream;
 use Amp\Http\Client\HttpException;
 use Amp\Http\Client\Psr7\Internal\PsrInputStream;
 use Amp\Http\Client\Psr7\Internal\PsrStreamBody;
@@ -77,7 +78,7 @@ final class PsrAdapter
         return $psrResponse;
     }
 
-    private function copyToPsrStream(InputStream $source, StreamInterface $target): void
+    private function copyToPsrStream(ReadableStream $source, StreamInterface $target): void
     {
         while (null !== $data = $source->read()) {
             $target->write($data);

@@ -2,11 +2,14 @@
 
 namespace Amp\Http\Client\Psr7\Internal;
 
-use Amp\ByteStream\InMemoryStream;
-use Amp\ByteStream\InputStream;
-use Amp\ByteStream\PipelineStream;
-use Amp\Pipeline\AsyncGenerator;
+use Amp\ByteStream\IterableStream;
+use Amp\ByteStream\PendingReadError;
+use Amp\ByteStream\ReadableBuffer;
+use Amp\ByteStream\ReadableStream;
+use Amp\ByteStream\StreamException;
+use Amp\Cancellation;
 use PHPUnit\Framework\TestCase;
+use function Amp\Pipeline\fromIterable;
 
 /**
  * @covers \Amp\Http\Client\Psr7\Internal\PsrMessageStream
@@ -15,7 +18,7 @@ class PsrMessageStreamTest extends TestCase
 {
     public function testToStringReturnsContentFromStream(): void
     {
-        $inputStream = new InMemoryStream('abcd');
+        $inputStream = new ReadableBuffer('abcd');
         $requestStream = new PsrMessageStream($inputStream);
 
         self::assertSame('abcd', (string) $requestStream);
@@ -23,7 +26,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testToStringReturnsEmptyStringIfStreamThrowsException(): void
     {
-        $inputStream = $this->createMock(InputStream::class);
+        $inputStream = $this->createMock(ReadableStream::class);
         $inputStream->method('read')->willThrowException(new \Exception());
 
         $requestStream = new PsrMessageStream($inputStream);
@@ -33,7 +36,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testReadAfterCloseThrowsException(): void
     {
-        $inputStream = new InMemoryStream('a');
+        $inputStream = new ReadableBuffer('a');
 
         $requestStream = new PsrMessageStream($inputStream);
         $requestStream->close();
@@ -46,7 +49,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testReadAfterDetachThrowsException(): void
     {
-        $inputStream = new InMemoryStream('a');
+        $inputStream = new ReadableBuffer('a');
 
         $requestStream = new PsrMessageStream($inputStream);
         $requestStream->detach();
@@ -59,7 +62,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testEofBeforeReadReturnsFalse(): void
     {
-        $inputStream = new InMemoryStream('');
+        $inputStream = new ReadableBuffer('');
         $requestStream = new PsrMessageStream($inputStream);
 
         self::assertFalse($requestStream->eof());
@@ -67,7 +70,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testEofAfterPartialReadReturnsFalse(): void
     {
-        $inputStream = new InMemoryStream('ab');
+        $inputStream = new ReadableBuffer('ab');
 
         $requestStream = new PsrMessageStream($inputStream);
         $requestStream->read(1);
@@ -77,7 +80,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testEofAfterFullReadReturnsTrue(): void
     {
-        $inputStream = new InMemoryStream('a');
+        $inputStream = new ReadableBuffer('a');
 
         $requestStream = new PsrMessageStream($inputStream);
         $requestStream->read(2);
@@ -87,7 +90,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testTellThrowsException(): void
     {
-        $inputStream = new InMemoryStream('a');
+        $inputStream = new ReadableBuffer('a');
         $requestStream = new PsrMessageStream($inputStream);
 
         $this->expectException(\RuntimeException::class);
@@ -98,7 +101,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testRewindThrowsException(): void
     {
-        $inputStream = new InMemoryStream('a');
+        $inputStream = new ReadableBuffer('a');
         $requestStream = new PsrMessageStream($inputStream);
 
         $this->expectException(\RuntimeException::class);
@@ -109,7 +112,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testSeekThrowsException(): void
     {
-        $inputStream = new InMemoryStream('a');
+        $inputStream = new ReadableBuffer('a');
         $requestStream = new PsrMessageStream($inputStream);
 
         $this->expectException(\RuntimeException::class);
@@ -120,7 +123,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testGetSizeReturnsNull(): void
     {
-        $inputStream = new InMemoryStream('a');
+        $inputStream = new ReadableBuffer('a');
         $requestStream = new PsrMessageStream($inputStream);
 
         self::assertNull($requestStream->getSize());
@@ -128,7 +131,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testIsSeekableReturnsFalse(): void
     {
-        $inputStream = new InMemoryStream('a');
+        $inputStream = new ReadableBuffer('a');
         $requestStream = new PsrMessageStream($inputStream);
 
         self::assertFalse($requestStream->isSeekable());
@@ -136,7 +139,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testIsWritableReturnsFalse(): void
     {
-        $inputStream = new InMemoryStream('a');
+        $inputStream = new ReadableBuffer('a');
         $requestStream = new PsrMessageStream($inputStream);
 
         self::assertFalse($requestStream->isWritable());
@@ -144,7 +147,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testWriteThrowsException(): void
     {
-        $inputStream = new InMemoryStream('a');
+        $inputStream = new ReadableBuffer('a');
         $requestStream = new PsrMessageStream($inputStream);
 
         $this->expectException(\RuntimeException::class);
@@ -155,7 +158,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testIsReadableAfterConstructionReturnsTrue(): void
     {
-        $inputStream = new InMemoryStream('a');
+        $inputStream = new ReadableBuffer('a');
         $requestStream = new PsrMessageStream($inputStream);
 
         self::assertTrue($requestStream->isReadable());
@@ -163,7 +166,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testIsReadableAfterCloseReturnsFalse(): void
     {
-        $inputStream = new InMemoryStream('a');
+        $inputStream = new ReadableBuffer('a');
 
         $requestStream = new PsrMessageStream($inputStream);
         $requestStream->close();
@@ -173,7 +176,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testIsReadableAfterDetachReturnsFalse(): void
     {
-        $inputStream = new InMemoryStream('a');
+        $inputStream = new ReadableBuffer('a');
 
         $requestStream = new PsrMessageStream($inputStream);
         $requestStream->detach();
@@ -183,7 +186,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testGetContentsReadsAllDataFromStream(): void
     {
-        $inputStream = new InMemoryStream('abcd');
+        $inputStream = new ReadableBuffer('abcd');
         $requestStream = new PsrMessageStream($inputStream);
 
         self::assertSame('abcd', $requestStream->getContents());
@@ -191,7 +194,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testGetMetadataReturnsNullWithKey(): void
     {
-        $inputStream = new InMemoryStream('a');
+        $inputStream = new ReadableBuffer('a');
         $requestStream = new PsrMessageStream($inputStream);
 
         self::assertNull($requestStream->getMetadata('b'));
@@ -199,7 +202,7 @@ class PsrMessageStreamTest extends TestCase
 
     public function testGetMetadataReturnsEmptyArrayWithoutKey(): void
     {
-        $inputStream = new InMemoryStream('a');
+        $inputStream = new ReadableBuffer('a');
         $requestStream = new PsrMessageStream($inputStream);
 
         self::assertSame([], $requestStream->getMetadata());
@@ -222,7 +225,7 @@ class PsrMessageStreamTest extends TestCase
         string $expectedFirstResult,
         string $expectedSecondResult
     ): void {
-        $inputStream = new PipelineStream(new AsyncGenerator(function () use ($secondChunk, $firstChunk) {
+        $inputStream = new IterableStream(fromIterable(function () use ($secondChunk, $firstChunk) {
             yield $firstChunk;
             yield $secondChunk;
         }));

@@ -2,10 +2,10 @@
 
 namespace Amp\Http\Client\Psr7\Internal;
 
-use Amp\ByteStream\InputStream;
-use Amp\TimeoutCancellationToken;
+use Amp\ByteStream\ReadableStream;
+use Amp\TimeoutCancellation;
 use Psr\Http\Message\StreamInterface;
-use function Amp\coroutine;
+use function Amp\async;
 
 /**
  * @internal
@@ -14,7 +14,7 @@ final class PsrMessageStream implements StreamInterface
 {
     private const DEFAULT_TIMEOUT = 5000;
 
-    private ?InputStream $stream;
+    private ?ReadableStream $stream;
 
     private int $timeout;
 
@@ -22,7 +22,7 @@ final class PsrMessageStream implements StreamInterface
 
     private bool $isEof = false;
 
-    public function __construct(InputStream $stream, int $timeout = self::DEFAULT_TIMEOUT)
+    public function __construct(ReadableStream $stream, int $timeout = self::DEFAULT_TIMEOUT)
     {
         $this->stream = $stream;
         $this->timeout = $timeout;
@@ -120,7 +120,7 @@ final class PsrMessageStream implements StreamInterface
         throw new \RuntimeException("Source stream is not writable");
     }
 
-    private function getOpenStream(): InputStream
+    private function getOpenStream(): ReadableStream
     {
         if ($this->stream === null) {
             throw new \RuntimeException("Stream is closed");
@@ -131,9 +131,7 @@ final class PsrMessageStream implements StreamInterface
 
     private function readFromStream(): string
     {
-        $data = coroutine(function (): ?string {
-            return $this->getOpenStream()->read();
-        })->await(new TimeoutCancellationToken($this->timeout));
+        $data = $this->getOpenStream()->read(new TimeoutCancellation($this->timeout));
 
         if ($data === null) {
             $this->isEof = true;

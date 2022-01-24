@@ -2,7 +2,7 @@
 
 namespace Amp\Http\Client\Psr7\Internal;
 
-use Amp\ByteStream\InputStream;
+use Amp\ByteStream\ReadableStream;
 use Amp\Http\Client\RequestBody;
 use Psr\Http\Message\StreamInterface;
 
@@ -18,7 +18,7 @@ final class PsrStreamBody implements RequestBody
         $this->stream = $stream;
     }
 
-    public function createBodyStream(): InputStream
+    public function createBodyStream(): ReadableStream
     {
         return new PsrInputStream($this->stream);
     }
