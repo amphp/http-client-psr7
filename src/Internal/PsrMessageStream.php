@@ -131,9 +131,7 @@ final class PsrMessageStream implements StreamInterface
 
     private function readFromStream(): string
     {
-        $data = async(function (): ?string {
-            return $this->getOpenStream()->read();
-        })->await(new TimeoutCancellation($this->timeout));
+        $data = $this->getOpenStream()->read(new TimeoutCancellation($this->timeout));
 
         if ($data === null) {
             $this->isEof = true;

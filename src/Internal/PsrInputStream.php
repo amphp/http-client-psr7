@@ -57,7 +57,7 @@ final class PsrInputStream implements ReadableStream
 
     public function isClosed(): bool
     {
-        return $this->isReadable();
+        return !$this->isReadable();
     }
 
     public function isReadable(): bool
