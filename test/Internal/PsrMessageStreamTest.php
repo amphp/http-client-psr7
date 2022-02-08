@@ -2,14 +2,14 @@
 
 namespace Amp\Http\Client\Psr7\Internal;
 
-use Amp\ByteStream\IterableStream;
 use Amp\ByteStream\PendingReadError;
 use Amp\ByteStream\ReadableBuffer;
+use Amp\ByteStream\ReadableIterableStream;
 use Amp\ByteStream\ReadableStream;
 use Amp\ByteStream\StreamException;
 use Amp\Cancellation;
+use Amp\Pipeline\Pipeline;
 use PHPUnit\Framework\TestCase;
-use function Amp\Pipeline\fromIterable;
 
 /**
  * @covers \Amp\Http\Client\Psr7\Internal\PsrMessageStream
@@ -225,7 +225,7 @@ class PsrMessageStreamTest extends TestCase
         string $expectedFirstResult,
         string $expectedSecondResult
     ): void {
-        $inputStream = new IterableStream(fromIterable(function () use ($secondChunk, $firstChunk) {
+        $inputStream = new ReadableIterableStream(Pipeline::fromIterable(function () use ($secondChunk, $firstChunk) {
             yield $firstChunk;
             yield $secondChunk;
         }));
