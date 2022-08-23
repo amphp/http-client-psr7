@@ -1,5 +1,5 @@
 {
-    "name": "bileslaw/amp-psr-adapter-impl",
+    "name": "amphp/http-client-psr7",
     "homepage": "https://github.com/amphp/http-client-psr7",
     "description": "PSR-7 adapter for Amp's HTTP client.",
     "keywords": [
