@@ -5,7 +5,6 @@ namespace Amp\Http\Client\Psr7\Internal;
 use Amp\ByteStream\ReadableStream;
 use Amp\TimeoutCancellation;
 use Psr\Http\Message\StreamInterface;
-use function Amp\async;
 
 /**
  * @internal
