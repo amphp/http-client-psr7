@@ -2,7 +2,6 @@
 
 namespace Amp\Http\Client\Psr7;
 
-use Amp\ByteStream\InputStream;
 use Amp\ByteStream\ReadableStream;
 use Amp\Http\Client\HttpException;
 use Amp\Http\Client\Psr7\Internal\PsrInputStream;
