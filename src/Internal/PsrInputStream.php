@@ -31,7 +31,7 @@ final class PsrInputStream implements ReadableStream
 
     public function onClose(\Closure $onClose): void
     {
-        throw new \BadMethodCallException('Not implemented');
+        throw new \Error("Not implemented");
     }
 
     public function read(?Cancellation $cancellation = null): ?string
