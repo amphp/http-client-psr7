@@ -11,7 +11,7 @@ use Psr\Http\Message\StreamInterface;
  */
 final class PsrInputStream implements ReadableStream
 {
-    private const DEFAULT_CHUNK_SIZE = 8192;
+    public const DEFAULT_CHUNK_SIZE = 8192;
 
     private StreamInterface $stream;
 
@@ -27,6 +27,11 @@ final class PsrInputStream implements ReadableStream
 
         $this->stream = $stream;
         $this->chunkSize = $chunkSize;
+    }
+
+    public function onClose(\Closure $onClose): never
+    {
+        throw new \Error("Not implemented");
     }
 
     public function read(?Cancellation $cancellation = null): ?string
