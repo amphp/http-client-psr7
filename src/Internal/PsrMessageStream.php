@@ -5,24 +5,23 @@ namespace Amp\Http\Client\Psr7\Internal;
 use Amp\ByteStream\ReadableStream;
 use Amp\TimeoutCancellation;
 use Psr\Http\Message\StreamInterface;
-use function Amp\async;
 
 /**
  * @internal
  */
 final class PsrMessageStream implements StreamInterface
 {
-    private const DEFAULT_TIMEOUT = 5000;
+    public const DEFAULT_TIMEOUT = 5;
 
     private ?ReadableStream $stream;
 
-    private int $timeout;
+    private float $timeout;
 
     private string $buffer = '';
 
     private bool $isEof = false;
 
-    public function __construct(ReadableStream $stream, int $timeout = self::DEFAULT_TIMEOUT)
+    public function __construct(ReadableStream $stream, float $timeout = self::DEFAULT_TIMEOUT)
     {
         $this->stream = $stream;
         $this->timeout = $timeout;

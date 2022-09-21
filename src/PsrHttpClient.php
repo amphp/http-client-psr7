@@ -2,7 +2,7 @@
 
 namespace Amp\Http\Client\Psr7;
 
-use Amp\CancellationToken;
+use Amp\Cancellation;
 use Amp\Http\Client\HttpClient;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface as PsrRequest;
@@ -21,11 +21,11 @@ final class PsrHttpClient implements ClientInterface
 
     /**
      * @param PsrRequest             $request
-     * @param CancellationToken|null $cancellation
+     * @param Cancellation|null      $cancellation
      *
      * @return PsrResponse
      */
-    public function sendRequest(PsrRequest $request, ?CancellationToken $cancellation = null): PsrResponse
+    public function sendRequest(PsrRequest $request, ?Cancellation $cancellation = null): PsrResponse
     {
         $internalRequest = $this->psrAdapter->fromPsrRequest($request);
 
