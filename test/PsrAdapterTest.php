@@ -3,11 +3,11 @@
 namespace Amp\Http\Client\Psr7;
 
 use Amp\ByteStream\ReadableBuffer;
+use Amp\Http\Client\HttpContent;
 use Amp\Http\Client\HttpException;
 use Amp\Http\Client\Request;
-use Amp\Http\Client\RequestBody;
 use Amp\Http\Client\Response;
-use Amp\Http\Status;
+use Amp\Http\HttpStatus;
 use Laminas\Diactoros\Request as PsrRequest;
 use Laminas\Diactoros\RequestFactory;
 use Laminas\Diactoros\Response as PsrResponse;
@@ -170,7 +170,7 @@ class PsrAdapterTest extends TestCase
 
         $source = new Response(
             '2',
-            Status::OK,
+            HttpStatus::OK,
             null,
             [],
             new ReadableBuffer(''),
@@ -188,7 +188,7 @@ class PsrAdapterTest extends TestCase
 
         $source = new Response(
             '1.1',
-            Status::NOT_FOUND,
+            HttpStatus::NOT_FOUND,
             null,
             [],
             new ReadableBuffer(''),
@@ -197,7 +197,7 @@ class PsrAdapterTest extends TestCase
 
         $target = $adapter->toPsrResponse($source);
 
-        self::assertSame(Status::NOT_FOUND, $target->getStatusCode());
+        self::assertSame(HttpStatus::NOT_FOUND, $target->getStatusCode());
     }
 
     public function testToPsrResponseReturnsResponseWithEqualReason(): void
@@ -206,7 +206,7 @@ class PsrAdapterTest extends TestCase
 
         $source = new Response(
             '1.1',
-            Status::OK,
+            HttpStatus::OK,
             'a',
             [],
             new ReadableBuffer(''),
@@ -224,7 +224,7 @@ class PsrAdapterTest extends TestCase
 
         $source = new Response(
             '1.1',
-            Status::OK,
+            HttpStatus::OK,
             null,
             ['a' => 'b', 'c' => ['d', 'e']],
             new ReadableBuffer(''),
@@ -242,7 +242,7 @@ class PsrAdapterTest extends TestCase
 
         $source = new Response(
             '1.1',
-            Status::OK,
+            HttpStatus::OK,
             null,
             [],
             new ReadableBuffer('body_content'),
@@ -286,7 +286,7 @@ class PsrAdapterTest extends TestCase
 
         $previousResponse = new Response(
             '1.1',
-            Status::OK,
+            HttpStatus::OK,
             null,
             [],
             new ReadableBuffer(''),
@@ -315,11 +315,11 @@ class PsrAdapterTest extends TestCase
     {
         $adapter = new PsrAdapter(new RequestFactory, new ResponseFactory);
 
-        $source = (new PsrResponse())->withStatus(Status::NOT_FOUND);
+        $source = (new PsrResponse())->withStatus(HttpStatus::NOT_FOUND);
 
         $target = $adapter->fromPsrResponse($source, new Request(''));
 
-        self::assertSame(Status::NOT_FOUND, $target->getStatus());
+        self::assertSame(HttpStatus::NOT_FOUND, $target->getStatus());
     }
 
     public function testFromPsrResponseReturnsResultWithEqualHeaders(): void
@@ -328,7 +328,7 @@ class PsrAdapterTest extends TestCase
 
         $source = new PsrResponse(
             'php://memory',
-            Status::OK,
+            HttpStatus::OK,
             ['a' => 'b', 'c' => ['d', 'e']]
         );
 
@@ -351,9 +351,9 @@ class PsrAdapterTest extends TestCase
         self::assertSame('body_content', $target->getBody()->buffer());
     }
 
-    private function readBody(RequestBody $body): string
+    private function readBody(HttpContent $body): string
     {
-        $stream = $body->createBodyStream();
+        $stream = $body->getContent();
 
         return buffer($stream);
     }

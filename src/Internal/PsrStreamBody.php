@@ -3,13 +3,13 @@
 namespace Amp\Http\Client\Psr7\Internal;
 
 use Amp\ByteStream\ReadableStream;
-use Amp\Http\Client\RequestBody;
+use Amp\Http\Client\HttpContent;
 use Psr\Http\Message\StreamInterface;
 
 /**
  * @internal
  */
-final class PsrStreamBody implements RequestBody
+final class PsrStreamBody implements HttpContent
 {
     private StreamInterface $stream;
 
@@ -18,18 +18,18 @@ final class PsrStreamBody implements RequestBody
         $this->stream = $stream;
     }
 
-    public function createBodyStream(): ReadableStream
+    public function getContent(): ReadableStream
     {
         return new PsrInputStream($this->stream);
     }
 
-    public function getBodyLength(): ?int
+    public function getContentLength(): ?int
     {
-        return $this->stream->getSize() ?? -1;
+        return $this->stream->getSize();
     }
 
-    public function getHeaders(): array
+    public function getContentType(): ?string
     {
-        return [];
+        return null;
     }
 }
