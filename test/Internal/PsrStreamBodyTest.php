@@ -16,7 +16,6 @@ class PsrStreamBodyTest extends TestCase
      * @param int|null $size
      * @param int      $expectedSize
      *
-     * @return \Generator
      * @dataProvider providerBodyLength
      */
     public function testGetBodyLengthReturnsValueFromStream(?int $size, int $expectedSize): void
@@ -26,7 +25,7 @@ class PsrStreamBodyTest extends TestCase
 
         $body = new PsrStreamBody($stream);
 
-        self::assertSame($expectedSize, $body->getBodyLength());
+        self::assertSame($expectedSize, $body->getContentLength());
     }
 
     public function providerBodyLength(): array
@@ -38,12 +37,12 @@ class PsrStreamBodyTest extends TestCase
         ];
     }
 
-    public function testGetHeadersReturnsEmptyList(): void
+    public function testContentTypeIsNull(): void
     {
         $stream = $this->createMock(StreamInterface::class);
         $body = new PsrStreamBody($stream);
 
-        self::assertSame([], $body->getHeaders());
+        self::assertSame(null, $body->getContentType());
     }
 
     public function testCreateBodyStreamResultReadsFromOriginalStream(): void
@@ -51,6 +50,6 @@ class PsrStreamBodyTest extends TestCase
         $stream = (new StreamFactory())->createStream('body_content');
         $body = new PsrStreamBody($stream);
 
-        self::assertSame('body_content', buffer($body->createBodyStream()));
+        self::assertSame('body_content', buffer($body->getContent()));
     }
 }

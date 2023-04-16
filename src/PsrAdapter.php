@@ -53,7 +53,7 @@ final class PsrAdapter
     {
         $target = $this->toPsrRequestWithoutBody($source, $protocolVersion);
 
-        $this->copyToPsrStream($source->getBody()->createBodyStream(), $target->getBody());
+        $this->copyToPsrStream($source->getBody()->getContent(), $target->getBody());
 
         return $target;
     }
@@ -68,7 +68,7 @@ final class PsrAdapter
         $psrResponse = $this->responseFactory->createResponse($response->getStatus(), $response->getReason())
             ->withProtocolVersion($response->getProtocolVersion());
 
-        foreach ($response->getRawHeaders() as [$headerName, $headerValue]) {
+        foreach ($response->getHeaderPairs() as [$headerName, $headerValue]) {
             $psrResponse = $psrResponse->withAddedHeader($headerName, $headerValue);
         }
 
@@ -92,7 +92,7 @@ final class PsrAdapter
     ): PsrRequest {
         $target = $this->requestFactory->createRequest($source->getMethod(), $source->getUri());
 
-        foreach ($source->getRawHeaders() as [$headerName, $headerValue]) {
+        foreach ($source->getHeaderPairs() as [$headerName, $headerValue]) {
             $target = $target->withAddedHeader($headerName, $headerValue);
         }
 
