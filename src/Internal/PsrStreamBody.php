@@ -25,7 +25,7 @@ final class PsrStreamBody implements HttpContent
 
     public function getContentLength(): ?int
     {
-        return $this->stream->getSize() ?? -1;
+        return $this->stream->getSize();
     }
 
     public function getContentType(): ?string

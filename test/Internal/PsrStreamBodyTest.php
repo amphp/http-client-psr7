@@ -14,11 +14,11 @@ class PsrStreamBodyTest extends TestCase
 {
     /**
      * @param int|null $size
-     * @param int      $expectedSize
+     * @param int|null $expectedSize
      *
      * @dataProvider providerBodyLength
      */
-    public function testGetBodyLengthReturnsValueFromStream(?int $size, int $expectedSize): void
+    public function testGetBodyLengthReturnsValueFromStream(?int $size, ?int $expectedSize): void
     {
         $stream = $this->createMock(StreamInterface::class);
         $stream->method('getSize')->willReturn($size);
@@ -33,7 +33,7 @@ class PsrStreamBodyTest extends TestCase
         return [
             'Stream provides zero size' => [0, 0],
             'Stream provides positive size' => [1, 1],
-            'Stream doesn\'t provide its size' => [null, -1],
+            'Stream doesn\'t provide its size' => [null, null],
         ];
     }
 
