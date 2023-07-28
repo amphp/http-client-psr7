@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Amp\Http\Client\Psr7\Internal;
 
@@ -13,8 +13,6 @@ use function Amp\ByteStream\buffer;
 class PsrStreamBodyTest extends TestCase
 {
     /**
-     * @param int|null $size
-     * @param int      $expectedSize
      *
      * @return \Generator
      * @dataProvider providerBodyLength

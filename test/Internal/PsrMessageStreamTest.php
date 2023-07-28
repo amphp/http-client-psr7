@@ -1,13 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Amp\Http\Client\Psr7\Internal;
 
-use Amp\ByteStream\PendingReadError;
 use Amp\ByteStream\ReadableBuffer;
 use Amp\ByteStream\ReadableIterableStream;
 use Amp\ByteStream\ReadableStream;
-use Amp\ByteStream\StreamException;
-use Amp\Cancellation;
 use Amp\Pipeline\Pipeline;
 use PHPUnit\Framework\TestCase;
 
@@ -209,12 +206,6 @@ class PsrMessageStreamTest extends TestCase
     }
 
     /**
-     * @param string|null $firstChunk
-     * @param string|null $secondChunk
-     * @param int         $firstChunkSize
-     * @param int         $secondChunkSize
-     * @param string      $expectedFirstResult
-     * @param string      $expectedSecondResult
      * @dataProvider providerReadChunks
      */
     public function testReadReturnsCorrectDataFromStreamReadingTwice(
