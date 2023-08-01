@@ -3,6 +3,7 @@
 namespace Amp\Http\Client\Psr7;
 
 use Amp\ByteStream\ReadableBuffer;
+use Amp\Http\Client\HttpContent;
 use Amp\Http\Client\HttpException;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\RequestBody;
@@ -347,9 +348,9 @@ class PsrAdapterTest extends TestCase
         self::assertSame('body_content', $target->getBody()->buffer());
     }
 
-    private function readBody(RequestBody $body): string
+    private function readBody(HttpContent $body): string
     {
-        $stream = $body->createBodyStream();
+        $stream = $body->getContent();
 
         return buffer($stream);
     }

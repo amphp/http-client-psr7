@@ -53,7 +53,7 @@ final class PsrAdapter
     {
         $target = $this->toPsrRequestWithoutBody($source, $protocolVersion);
 
-        $this->copyToPsrStream($source->getBody()->createBodyStream(), $target->getBody());
+        $this->copyToPsrStream($source->getBody()->getContent(), $target->getBody());
 
         return $target;
     }
