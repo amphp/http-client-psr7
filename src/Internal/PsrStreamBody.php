@@ -4,7 +4,6 @@ namespace Amp\Http\Client\Psr7\Internal;
 
 use Amp\ByteStream\ReadableStream;
 use Amp\Http\Client\HttpContent;
-use Amp\Http\Client\RequestBody;
 use Psr\Http\Message\StreamInterface;
 
 /**

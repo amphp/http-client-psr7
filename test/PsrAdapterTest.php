@@ -6,7 +6,6 @@ use Amp\ByteStream\ReadableBuffer;
 use Amp\Http\Client\HttpContent;
 use Amp\Http\Client\HttpException;
 use Amp\Http\Client\Request;
-use Amp\Http\Client\RequestBody;
 use Amp\Http\Client\Response;
 use Amp\Http\HttpStatus;
 use Laminas\Diactoros\Request as PsrRequest;

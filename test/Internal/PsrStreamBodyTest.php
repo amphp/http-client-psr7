@@ -39,7 +39,7 @@ class PsrStreamBodyTest extends TestCase
         $stream = $this->createMock(StreamInterface::class);
         $body = new PsrStreamBody($stream);
 
-        self::assertSame(null, $body->getContentType());
+        self::assertNull($body->getContentType());
     }
 
     public function testCreateBodyStreamResultReadsFromOriginalStream(): void
