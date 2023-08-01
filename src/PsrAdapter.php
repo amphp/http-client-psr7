@@ -27,8 +27,10 @@ final class PsrAdapter
 
     public function fromPsrRequest(PsrRequest $source): Request
     {
+        /** @psalm-suppress ArgumentTypeCoercion Wrong typehints in PSR */
         $target = new Request($source->getUri(), $source->getMethod());
         $target->setHeaders($source->getHeaders());
+        /** @psalm-suppress ArgumentTypeCoercion Wrong typehints in PSR */
         $target->setProtocolVersions([$source->getProtocolVersion()]);
         $target->setBody(new PsrStreamBody($source->getBody()));
 
@@ -37,6 +39,7 @@ final class PsrAdapter
 
     public function fromPsrResponse(PsrResponse $source, Request $request, ?Response $previousResponse = null): Response
     {
+        /** @psalm-suppress ArgumentTypeCoercion Wrong typehints in PSR */
         return new Response(
             $source->getProtocolVersion(),
             $source->getStatusCode(),
