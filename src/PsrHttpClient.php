@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Amp\Http\Client\Psr7;
 
@@ -19,12 +19,6 @@ final class PsrHttpClient implements ClientInterface
         $this->psrAdapter = $psrAdapter;
     }
 
-    /**
-     * @param PsrRequest             $request
-     * @param Cancellation|null      $cancellation
-     *
-     * @return PsrResponse
-     */
     public function sendRequest(PsrRequest $request, ?Cancellation $cancellation = null): PsrResponse
     {
         $internalRequest = $this->psrAdapter->fromPsrRequest($request);

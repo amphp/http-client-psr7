@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Amp\Http\Client\Psr7;
 
@@ -27,8 +27,10 @@ final class PsrAdapter
 
     public function fromPsrRequest(PsrRequest $source): Request
     {
+        /** @psalm-suppress ArgumentTypeCoercion Wrong typehints in PSR */
         $target = new Request($source->getUri(), $source->getMethod());
         $target->setHeaders($source->getHeaders());
+        /** @psalm-suppress ArgumentTypeCoercion Wrong typehints in PSR */
         $target->setProtocolVersions([$source->getProtocolVersion()]);
         $target->setBody(new PsrStreamBody($source->getBody()));
 
@@ -37,6 +39,7 @@ final class PsrAdapter
 
     public function fromPsrResponse(PsrResponse $source, Request $request, ?Response $previousResponse = null): Response
     {
+        /** @psalm-suppress ArgumentTypeCoercion Wrong typehints in PSR */
         return new Response(
             $source->getProtocolVersion(),
             $source->getStatusCode(),
@@ -53,22 +56,17 @@ final class PsrAdapter
     {
         $target = $this->toPsrRequestWithoutBody($source, $protocolVersion);
 
-        $this->copyToPsrStream($source->getBody()->createBodyStream(), $target->getBody());
+        $this->copyToPsrStream($source->getBody()->getContent(), $target->getBody());
 
         return $target;
     }
 
-    /**
-     * @param Response $response
-     *
-     * @return PsrResponse
-     */
     public function toPsrResponse(Response $response): PsrResponse
     {
         $psrResponse = $this->responseFactory->createResponse($response->getStatus(), $response->getReason())
             ->withProtocolVersion($response->getProtocolVersion());
 
-        foreach ($response->getRawHeaders() as [$headerName, $headerValue]) {
+        foreach ($response->getHeaderPairs() as [$headerName, $headerValue]) {
             $psrResponse = $psrResponse->withAddedHeader($headerName, $headerValue);
         }
 
@@ -92,7 +90,7 @@ final class PsrAdapter
     ): PsrRequest {
         $target = $this->requestFactory->createRequest($source->getMethod(), $source->getUri());
 
-        foreach ($source->getRawHeaders() as [$headerName, $headerValue]) {
+        foreach ($source->getHeaderPairs() as [$headerName, $headerValue]) {
             $target = $target->withAddedHeader($headerName, $headerValue);
         }
 

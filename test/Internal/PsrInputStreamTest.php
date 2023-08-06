@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Amp\Http\Client\Psr7\Internal;
 
@@ -79,11 +79,6 @@ class PsrInputStreamTest extends TestCase
     }
 
     /**
-     * @param string $sourceData
-     * @param int $chunkSize
-     * @param string $firstChunk
-     * @param string $secondChunk
-     * @return void
      * @dataProvider providerStreamData
      */
     public function testReadReturnsMatchingDataFromStream(

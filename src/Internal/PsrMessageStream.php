@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Amp\Http\Client\Psr7\Internal;
 
@@ -27,7 +27,7 @@ final class PsrMessageStream implements StreamInterface
         $this->timeout = $timeout;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         try {
             return $this->getContents();

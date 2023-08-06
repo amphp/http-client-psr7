@@ -21,40 +21,38 @@ Create `Amp\Http\Client\Psr7\PsrAdapter` instance to convert client requests and
 ```php
 <?php
 
+require 'vendor/autoload.php';
+
 use Amp\Http\Client\Psr7\PsrAdapter;
-use Amp\Loop;
 use Laminas\Diactoros\RequestFactory;
 use Laminas\Diactoros\ResponseFactory;
 
-Loop::run(function () {
-    $psrAdapter = new PsrAdapter();
+// PSR-17 request factory
+$psrRequestFactory = new RequestFactory();
+// PSR-17 response factory
+$psrResponseFactory = new ResponseFactory();
 
-    // PSR-17 request factory
-    $psrRequestFactory = new RequestFactory();
-    // PSR-17 response factory
-    $psrResponseFactory = new ResponseFactory();
+$psrAdapter = new PsrAdapter($psrRequestFactory, $psrResponseFactory);
 
-    // Convert PSR-7 request to Amp request
-    $psrRequest = $psrRequestFactory->createRequest('GET', 'https://google.com/'); 
-    $ampRequest = yield $psrAdapter->fromPsrRequest($psrRequest);
+// Convert PSR-7 request to Amp request
+$psrRequest = $psrRequestFactory->createRequest('GET', 'https://google.com/');
+$ampRequest = $psrAdapter->fromPsrRequest($psrRequest);
 
-    // Convert Amp request to PSR-7 request
-    $psrRequest = yield $psrAdapter->toPsrRequest($psrRequestFactory, $ampRequest);
+// Convert Amp request to PSR-7 request
+$psrRequest = $psrAdapter->toPsrRequest($ampRequest);
 
-    // Convert PSR-7 response to Amp response
-    $psrResponse = $psrResponseFactory->createResponse();
-    $ampResponse = yield $psrAdapter->fromPsrResponse($psrResponse, $ampRequest);
+// Convert PSR-7 response to Amp response
+$psrResponse = $psrResponseFactory->createResponse();
+$ampResponse = $psrAdapter->fromPsrResponse($psrResponse, $ampRequest);
 
-    // Convert Amp response to PSR-7 response
-    $psrResponse = yield $psrAdapter->toPsrResponse($psrResponseFactory, $ampResponse);
-});
-
+// Convert Amp response to PSR-7 response
+$psrResponse = $psrAdapter->toPsrResponse($ampResponse);
 ```
 
 There are few incompatibilities between Amp and PSR-7 implementations that may require special handling:
 
 - PSR-7 requests contain only one protocol version, but Amp requests can contain several versions. In this case the adapter checks if the protocol version list contains a version that is the current PSR-7 implementation default, otherwise it throws an exception. You may also set the protocol version explicitly using the optional argument of the `toPsrRequest()` method.
-- Amp responses contain a reference to the `Request` instance, but PSR-7 responses don't; so you need to provide a request instance explicitly. 
+- Amp responses contain a reference to the `Request` instance, but PSR-7 responses don't; so you need to provide a request instance explicitly.
 
 ## Examples
 

@@ -1,16 +1,20 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Amp\Http\Client\Psr7\Internal;
 
 use Amp\ByteStream\ReadableStream;
+use Amp\ByteStream\ReadableStreamIteratorAggregate;
 use Amp\Cancellation;
 use Psr\Http\Message\StreamInterface;
 
 /**
  * @internal
+ *
+ * @implements \IteratorAggregate<int, string>
  */
-final class PsrInputStream implements ReadableStream
+final class PsrInputStream implements ReadableStream, \IteratorAggregate
 {
+    use ReadableStreamIteratorAggregate;
     public const DEFAULT_CHUNK_SIZE = 8192;
 
     private StreamInterface $stream;
