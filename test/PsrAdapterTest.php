@@ -4,7 +4,6 @@ namespace Amp\Http\Client\Psr7;
 
 use Amp\ByteStream\ReadableBuffer;
 use Amp\Http\Client\HttpContent;
-use Amp\Http\Client\HttpException;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
 use Amp\Http\HttpStatus;
@@ -141,7 +140,7 @@ class PsrAdapterTest extends TestCase
         $source = new Request('');
         $source->setProtocolVersions(['2']);
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(PsrHttpClientException::class);
         $this->expectExceptionMessage('Source request doesn\'t support the provided HTTP protocol version: 1.1');
 
         $adapter->toPsrRequest($source, '1.1');
@@ -154,7 +153,7 @@ class PsrAdapterTest extends TestCase
         $source = new Request('');
         $source->setProtocolVersions(['1.0', '2']);
 
-        $this->expectException(HttpException::class);
+        $this->expectException(PsrHttpClientException::class);
         $this->expectExceptionMessage('Can\'t choose HTTP protocol version automatically: [1.0, 2]');
 
         $adapter->toPsrRequest($source);

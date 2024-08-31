@@ -3,6 +3,7 @@
 namespace Amp\Http\Client\Psr7;
 
 use Amp\ByteStream\ReadableStream;
+use Amp\ByteStream\StreamException;
 use Amp\Http\Client\HttpException;
 use Amp\Http\Client\Psr7\Internal\PsrInputStream;
 use Amp\Http\Client\Psr7\Internal\PsrStreamBody;
@@ -49,15 +50,25 @@ final class PsrAdapter
         );
     }
 
+    /**
+     * @throws PsrHttpClientException
+     */
     public function toPsrRequest(Request $source, ?string $protocolVersion = null): PsrRequest
     {
         $target = $this->toPsrRequestWithoutBody($source, $protocolVersion);
 
-        $this->copyToPsrStream($source->getBody()->getContent(), $target->getBody());
+        try {
+            $this->copyToPsrStream($source->getBody()->getContent(), $target->getBody());
+        } catch (HttpException|StreamException $exception) {
+            throw new PsrHttpClientException($exception->getMessage(), $exception);
+        }
 
         return $target;
     }
 
+    /**
+     * @throws PsrHttpClientException
+     */
     public function toPsrResponse(Response $response): PsrResponse
     {
         $psrResponse = $this->responseFactory->createResponse($response->getStatus(), $response->getReason())
@@ -67,11 +78,18 @@ final class PsrAdapter
             $psrResponse = $psrResponse->withAddedHeader($headerName, $headerValue);
         }
 
-        $this->copyToPsrStream($response->getBody(), $psrResponse->getBody());
+        try {
+            $this->copyToPsrStream($response->getBody(), $psrResponse->getBody());
+        } catch (StreamException $exception) {
+            throw new PsrHttpClientException($exception->getMessage(), $exception);
+        }
 
         return $psrResponse;
     }
 
+    /**
+     * @throws StreamException
+     */
     private function copyToPsrStream(ReadableStream $source, StreamInterface $target): void
     {
         while (null !== $data = $source->read()) {
@@ -81,6 +99,9 @@ final class PsrAdapter
         $target->rewind();
     }
 
+    /**
+     * @throws PsrHttpClientException
+     */
     private function toPsrRequestWithoutBody(
         Request $source,
         ?string $protocolVersion = null
@@ -94,7 +115,7 @@ final class PsrAdapter
         $protocolVersions = $source->getProtocolVersions();
         if ($protocolVersion !== null) {
             if (!\in_array($protocolVersion, $protocolVersions, true)) {
-                throw new \RuntimeException(
+                throw new PsrHttpClientException(
                     "Source request doesn't support the provided HTTP protocol version: {$protocolVersion}"
                 );
             }
@@ -107,7 +128,7 @@ final class PsrAdapter
         }
 
         if (!\in_array($target->getProtocolVersion(), $protocolVersions)) {
-            throw new HttpException(
+            throw new PsrHttpClientException(
                 "Can't choose HTTP protocol version automatically: [" . \implode(', ', $protocolVersions) . ']'
             );
         }
