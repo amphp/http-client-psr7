@@ -6,7 +6,7 @@ use Amp\ByteStream\ReadableStream;
 use Amp\ByteStream\StreamException;
 use Amp\Http\Client\HttpException;
 use Amp\Http\Client\Psr7\Internal\PsrInputStream;
-use Amp\Http\Client\Psr7\Internal\PsrOutputStream;
+use Amp\Http\Client\Psr7\Internal\PsrMessageStream;
 use Amp\Http\Client\Psr7\Internal\PsrStreamBody;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
@@ -76,7 +76,7 @@ final class PsrAdapter
             $psrResponse = $psrResponse->withAddedHeader($headerName, $headerValue);
         }
 
-        return $psrResponse->withBody(new PsrOutputStream($response->getBody()));
+        return $psrResponse->withBody(new PsrMessageStream($response->getBody()));
     }
 
     /**

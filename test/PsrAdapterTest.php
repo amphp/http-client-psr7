@@ -249,6 +249,34 @@ class PsrAdapterTest extends TestCase
         self::assertSame('body_content', (string) $target->getBody());
     }
 
+    public function testToPsrResponseReturnsResponseWithStreamableBody(): void
+    {
+        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
+
+        $source = new Response(
+            '1.1',
+            HttpStatus::OK,
+            null,
+            [],
+            new ReadableBuffer('body_content'),
+            new Request('')
+        );
+
+        $target = $adapter->toPsrResponse($source);
+
+        $body = $target->getBody();
+
+        self::assertSame('body', $body->read(4));
+        self::assertSame('_', $body->read(1));
+        self::assertFalse($body->eof());
+        self::assertTrue($body->isReadable());
+
+        self::assertSame('content', $body->read(8192));
+        self::assertSame('', $body->read(8192));
+        self::assertTrue($body->eof());
+        self::assertFalse($body->isReadable());
+    }
+
     public function testFromPsrResponseWithRequestReturnsResultWithSameRequest(): void
     {
         $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());

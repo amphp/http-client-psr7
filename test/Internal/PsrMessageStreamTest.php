@@ -4,7 +4,6 @@ namespace Amp\Http\Client\Psr7\Internal;
 
 use Amp\ByteStream\ReadableBuffer;
 use Amp\ByteStream\ReadableIterableStream;
-use Amp\ByteStream\ReadableStream;
 use Amp\Pipeline\Pipeline;
 use PHPUnit\Framework\TestCase;
 
@@ -19,16 +18,6 @@ class PsrMessageStreamTest extends TestCase
         $requestStream = new PsrMessageStream($inputStream);
 
         self::assertSame('abcd', (string) $requestStream);
-    }
-
-    public function testToStringReturnsEmptyStringIfStreamThrowsException(): void
-    {
-        $inputStream = $this->createMock(ReadableStream::class);
-        $inputStream->method('read')->willThrowException(new \Exception());
-
-        $requestStream = new PsrMessageStream($inputStream);
-
-        self::assertSame('', (string) $requestStream);
     }
 
     public function testReadAfterCloseThrowsException(): void

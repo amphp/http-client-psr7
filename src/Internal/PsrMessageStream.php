@@ -3,63 +3,56 @@
 namespace Amp\Http\Client\Psr7\Internal;
 
 use Amp\ByteStream\ReadableStream;
-use Amp\TimeoutCancellation;
+use Amp\ByteStream\StreamException;
 use Psr\Http\Message\StreamInterface;
+use function Amp\ByteStream\buffer;
 
 /**
  * @internal
  */
 final class PsrMessageStream implements StreamInterface
 {
-    public const DEFAULT_TIMEOUT = 5;
-
-    private ?ReadableStream $stream;
-
-    private float $timeout;
-
     private string $buffer = '';
 
     private bool $isEof = false;
 
-    public function __construct(ReadableStream $stream, float $timeout = self::DEFAULT_TIMEOUT)
+    public function __construct(private readonly ReadableStream $source)
     {
-        $this->stream = $stream;
-        $this->timeout = $timeout;
     }
 
     public function __toString(): string
     {
-        try {
-            return $this->getContents();
-        } catch (\Throwable) {
-            return '';
-        }
+        return $this->getContents();
     }
 
     public function close(): void
     {
-        $this->stream = null;
+        $this->source->close();
+        $this->buffer = '';
+        $this->isEof = true;
     }
 
-    public function detach()
+    public function detach(): void
     {
-        $this->stream = null;
-
-        return null;
+        $this->close();
     }
 
     public function eof(): bool
     {
-        return $this->isEof;
+        return !\strlen($this->buffer) && $this->isEof;
     }
 
     public function getContents(): string
     {
-        while (!$this->isEof) {
-            $this->buffer .= $this->readFromStream();
-        }
+        $buffer = $this->buffer;
+        $this->buffer = '';
 
-        return $this->buffer;
+        try {
+            return $buffer . buffer($this->source);
+        } catch (StreamException $exception) {
+            $this->close();
+            throw new \RuntimeException($exception->getMessage(), previous: $exception);
+        }
     }
 
     public function getMetadata($key = null): ?array
@@ -74,7 +67,7 @@ final class PsrMessageStream implements StreamInterface
 
     public function isReadable(): bool
     {
-        return $this->stream !== null;
+        return !$this->eof();
     }
 
     public function isSeekable(): bool
@@ -87,50 +80,50 @@ final class PsrMessageStream implements StreamInterface
         return false;
     }
 
-    public function read($length): string
+    public function read(int $length): string
     {
+        if ($this->eof()) {
+            throw new \RuntimeException("Stream is closed");
+        }
+
         while (!$this->isEof && \strlen($this->buffer) < $length) {
             $this->buffer .= $this->readFromStream();
         }
 
         $data = \substr($this->buffer, 0, $length);
-        $this->buffer = \substr($this->buffer, \strlen($data));
+        $this->buffer = \substr($this->buffer, $length);
 
         return $data;
     }
 
-    public function rewind(): void
+    public function rewind(): never
     {
         throw new \RuntimeException("Source stream is not seekable");
     }
 
-    public function seek($offset, $whence = SEEK_SET): void
+    public function seek($offset, $whence = \SEEK_SET): never
     {
         throw new \RuntimeException("Source stream is not seekable");
     }
 
-    public function tell(): int
+    public function tell(): never
     {
         throw new \RuntimeException("Source stream is not seekable");
     }
 
-    public function write($string): int
+    public function write($string): never
     {
         throw new \RuntimeException("Source stream is not writable");
     }
 
-    private function getOpenStream(): ReadableStream
-    {
-        if ($this->stream === null) {
-            throw new \RuntimeException("Stream is closed");
-        }
-
-        return $this->stream;
-    }
-
     private function readFromStream(): string
     {
-        $data = $this->getOpenStream()->read(new TimeoutCancellation($this->timeout));
+        try {
+            $data = $this->source->read();
+        } catch (StreamException $exception) {
+            $this->close();
+            throw new \RuntimeException($exception->getMessage(), previous: $exception);
+        }
 
         if ($data === null) {
             $this->isEof = true;
