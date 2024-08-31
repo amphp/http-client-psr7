@@ -2,19 +2,17 @@
 
 namespace Amp\Http\Client\Psr7;
 
-use Amp\ByteStream\ReadableStream;
-use Amp\ByteStream\StreamException;
 use Amp\Http\Client\HttpException;
 use Amp\Http\Client\Psr7\Internal\PsrInputStream;
 use Amp\Http\Client\Psr7\Internal\PsrMessageStream;
 use Amp\Http\Client\Psr7\Internal\PsrStreamBody;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Message\RequestFactoryInterface as PsrRequestFactory;
 use Psr\Http\Message\RequestInterface as PsrRequest;
 use Psr\Http\Message\ResponseFactoryInterface as PsrResponseFactory;
 use Psr\Http\Message\ResponseInterface as PsrResponse;
-use Psr\Http\Message\StreamInterface;
 
 final class PsrAdapter
 {
@@ -52,19 +50,17 @@ final class PsrAdapter
     }
 
     /**
-     * @throws PsrHttpClientException
+     * @throws ClientExceptionInterface
      */
     public function toPsrRequest(Request $source, ?string $protocolVersion = null): PsrRequest
     {
         $target = $this->toPsrRequestWithoutBody($source, $protocolVersion);
 
         try {
-            $this->copyToPsrStream($source->getBody()->getContent(), $target->getBody());
-        } catch (HttpException|StreamException $exception) {
+            return $target->withBody(new PsrMessageStream($source->getBody()->getContent()));
+        } catch (HttpException $exception) {
             throw new PsrHttpClientException($exception->getMessage(), $exception);
         }
-
-        return $target;
     }
 
     public function toPsrResponse(Response $response): PsrResponse
@@ -80,19 +76,7 @@ final class PsrAdapter
     }
 
     /**
-     * @throws StreamException
-     */
-    private function copyToPsrStream(ReadableStream $source, StreamInterface $target): void
-    {
-        while (null !== $data = $source->read()) {
-            $target->write($data);
-        }
-
-        $target->rewind();
-    }
-
-    /**
-     * @throws PsrHttpClientException
+     * @throws ClientExceptionInterface
      */
     private function toPsrRequestWithoutBody(
         Request $source,
