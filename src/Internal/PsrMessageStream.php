@@ -16,6 +16,8 @@ final class PsrMessageStream implements StreamInterface
 
     private bool $isEof = false;
 
+    private int $position = 0;
+
     public function __construct(private readonly ReadableStream $source)
     {
     }
@@ -55,7 +57,7 @@ final class PsrMessageStream implements StreamInterface
         }
     }
 
-    public function getMetadata($key = null): ?array
+    public function getMetadata(?string $key = null): ?array
     {
         return $key === null ? [] : null;
     }
@@ -92,6 +94,7 @@ final class PsrMessageStream implements StreamInterface
 
         $data = \substr($this->buffer, 0, $length);
         $this->buffer = \substr($this->buffer, $length);
+        $this->position += \strlen($data);
 
         return $data;
     }
@@ -101,17 +104,17 @@ final class PsrMessageStream implements StreamInterface
         throw new \RuntimeException("Source stream is not seekable");
     }
 
-    public function seek($offset, $whence = \SEEK_SET): never
+    public function seek(int $offset, int $whence = \SEEK_SET): never
     {
         throw new \RuntimeException("Source stream is not seekable");
     }
 
-    public function tell(): never
+    public function tell(): int
     {
-        throw new \RuntimeException("Source stream is not seekable");
+        return $this->position;
     }
 
-    public function write($string): never
+    public function write(string $string): never
     {
         throw new \RuntimeException("Source stream is not writable");
     }
