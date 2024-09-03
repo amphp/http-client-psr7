@@ -29,7 +29,7 @@ final class PsrHttpClient implements ClientInterface
         } catch (SocketException $exception) {
             throw new PsrNetworkException($exception->getMessage(), $request, $exception);
         } catch (HttpException|CancelledException $exception) {
-            throw new PsrHttpClientException($exception->getMessage(), $exception);
+            throw new PsrHttpClientException($exception->getMessage(), $request, $exception);
         }
 
         return $this->psrAdapter->toPsrResponse($response);

@@ -4,6 +4,6 @@ namespace Amp\Http\Client\Psr7;
 
 use Psr\Http\Client\RequestExceptionInterface;
 
-final class PsrRequestException extends Internal\PsrHttpClientExceptionWithRequest implements RequestExceptionInterface
+final class PsrRequestException extends PsrHttpClientException implements RequestExceptionInterface
 {
 }

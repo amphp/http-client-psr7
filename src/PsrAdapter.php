@@ -59,7 +59,7 @@ final class PsrAdapter
         try {
             return $target->withBody(new PsrMessageStream($source->getBody()->getContent()));
         } catch (HttpException $exception) {
-            throw new PsrHttpClientException($exception->getMessage(), $exception);
+            throw new PsrHttpClientException($exception->getMessage(), $target, $exception);
         }
     }
 
@@ -92,7 +92,8 @@ final class PsrAdapter
         if ($protocolVersion !== null) {
             if (!\in_array($protocolVersion, $protocolVersions, true)) {
                 throw new PsrHttpClientException(
-                    "Source request doesn't support the provided HTTP protocol version: {$protocolVersion}"
+                    "Source request doesn't support the provided HTTP protocol version: {$protocolVersion}",
+                    request: $target,
                 );
             }
 
@@ -105,7 +106,8 @@ final class PsrAdapter
 
         if (!\in_array($target->getProtocolVersion(), $protocolVersions)) {
             throw new PsrHttpClientException(
-                "Can't choose HTTP protocol version automatically: [" . \implode(', ', $protocolVersions) . ']'
+                "Can't choose HTTP protocol version automatically: [" . \implode(', ', $protocolVersions) . ']',
+                request: $target,
             );
         }
 
