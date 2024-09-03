@@ -2,8 +2,6 @@
 
 namespace Amp\Http\Client\Psr7;
 
-use Amp\Cancellation;
-use Amp\CancelledException;
 use Amp\Http\Client\HttpClient;
 use Amp\Http\Client\HttpException;
 use Amp\Http\Client\InvalidRequestException;
@@ -18,17 +16,17 @@ final class PsrHttpClient implements ClientInterface
     {
     }
 
-    public function sendRequest(PsrRequest $request, ?Cancellation $cancellation = null): PsrResponse
+    public function sendRequest(PsrRequest $request): PsrResponse
     {
         $internalRequest = $this->psrAdapter->fromPsrRequest($request);
 
         try {
-            $response = $this->httpClient->request($internalRequest, $cancellation);
+            $response = $this->httpClient->request($internalRequest);
         } catch (InvalidRequestException $exception) {
             throw new PsrRequestException($exception->getMessage(), $request, $exception);
         } catch (SocketException $exception) {
             throw new PsrNetworkException($exception->getMessage(), $request, $exception);
-        } catch (HttpException|CancelledException $exception) {
+        } catch (HttpException $exception) {
             throw new PsrHttpClientException($exception->getMessage(), $request, $exception);
         }
 
