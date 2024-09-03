@@ -272,7 +272,6 @@ class PsrAdapterTest extends TestCase
         self::assertTrue($body->isReadable());
 
         self::assertSame('content', $body->read(8192));
-        self::assertSame('', $body->read(8192));
         self::assertTrue($body->eof());
         self::assertFalse($body->isReadable());
     }

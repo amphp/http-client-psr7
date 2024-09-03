@@ -74,15 +74,27 @@ class PsrMessageStreamTest extends TestCase
         self::assertTrue($requestStream->eof());
     }
 
-    public function testTellThrowsException(): void
+    public function testTell(): void
     {
-        $inputStream = new ReadableBuffer('a');
+        $inputStream = new ReadableBuffer('abcdef');
         $requestStream = new PsrMessageStream($inputStream);
 
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Source stream is not seekable');
+        $requestStream->read(1);
+        self::assertSame(1, $requestStream->tell());
 
-        $requestStream->tell();
+        $requestStream->read(2);
+        self::assertSame(3, $requestStream->tell());
+
+        $requestStream->read(3);
+        self::assertSame(6, $requestStream->tell());
+
+        self::assertFalse($requestStream->eof());
+
+        self::assertSame('', $requestStream->read(8192));
+        self::assertSame(6, $requestStream->tell());
+        self::assertTrue($requestStream->eof());
+        self::assertFalse($requestStream->isReadable());
+
     }
 
     public function testRewindThrowsException(): void
