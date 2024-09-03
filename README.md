@@ -1,7 +1,7 @@
 # amphp/http-client-psr7
 
 AMPHP is a collection of event-driven libraries for PHP designed with fibers and concurrency in mind.
-This package provides an PSR-7 adapter and PSR-18 client as a plugin for [`amphp/http-client`](https://github.com/amphp/http-client).
+This package provides an [PSR-7](https://www.php-fig.org/psr/psr-7/) adapter and [PSR-18](https://www.php-fig.org/psr/psr-18/) client as a plugin for [`amphp/http-client`](https://github.com/amphp/http-client).
 
 [![Latest Release](https://img.shields.io/github/release/amphp/http-client-psr7.svg?style=flat-square)](https://github.com/amphp/http-client-psr7/releases)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://github.com/amphp/http-client-psr7/blob/1.x/LICENSE)
@@ -20,7 +20,7 @@ composer require amphp/http-client-psr7
 
 ## Usage
 
-Create `Amp\Http\Client\Psr7\PsrAdapter` instance to convert client requests and responses between native Amp and PSR-7 formats. Adapter doesn't depend on any concrete PSR-7 implementation, so it requires PSR-17 factory interfaces to create PSR-7 requests and responses.
+Create `Amp\Http\Client\Psr7\PsrAdapter` instance to convert client requests and responses between native Amp and [PSR-7](https://www.php-fig.org/psr/psr-7/) formats. Adapter doesn't depend on any concrete PSR-7 implementation, so it requires [PSR-17](https://www.php-fig.org/psr/psr-17/) factory interfaces to create PSR-7 requests and responses.
 
 Use `Amp\Http\Client\Psr7\PsrHttpClient` as a drop-in implementation of a [PSR-18](https://www.php-fig.org/psr/psr-18/) `ClientInterface`.
 
