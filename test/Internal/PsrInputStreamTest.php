@@ -2,7 +2,7 @@
 
 namespace Amp\Http\Client\Psr7\Internal;
 
-use Laminas\Diactoros\StreamFactory;
+use GuzzleHttp\Psr7\HttpFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;
 
@@ -87,7 +87,7 @@ class PsrInputStreamTest extends TestCase
         string $firstChunk,
         string $secondChunk
     ): void {
-        $stream = (new StreamFactory())->createStream($sourceData);
+        $stream = (new HttpFactory())->createStream($sourceData);
 
         $inputStream = new PsrInputStream($stream, $chunkSize);
 

@@ -7,11 +7,9 @@ use Amp\Http\Client\HttpContent;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
 use Amp\Http\HttpStatus;
-use Laminas\Diactoros\Request as PsrRequest;
-use Laminas\Diactoros\RequestFactory;
-use Laminas\Diactoros\Response as PsrResponse;
-use Laminas\Diactoros\ResponseFactory;
+use GuzzleHttp\Psr7\HttpFactory;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\RequestInterface as PsrRequest;
 use function Amp\ByteStream\buffer;
 
 /**
@@ -19,31 +17,55 @@ use function Amp\ByteStream\buffer;
  */
 class PsrAdapterTest extends TestCase
 {
+    private HttpFactory $httpFactory;
+
+    private PsrAdapter $adapter;
+
+    public function setUp(): void
+    {
+        $this->httpFactory = new HttpFactory();
+
+        $this->adapter = new PsrAdapter($this->httpFactory, $this->httpFactory);
+    }
+
+    private function createRequest(
+        string $uri = 'https://example.com',
+        string $method = 'GET',
+        ?string $body = null,
+        array $headers = [],
+    ): PsrRequest {
+        $request = $this->httpFactory->createRequest($method, $uri);
+
+        if ($body) {
+            $request = $request->withBody($this->httpFactory->createStreamFromFile($body));
+        }
+
+        foreach ($headers as $name => $value) {
+            $request = $request->withHeader($name, $value);
+        }
+
+        return $request;
+    }
+
     public function testFromPsrRequestReturnsRequestWithEqualUri(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
-        $source = new PsrRequest('https://user:password@localhost/foo?a=b#c');
-        $target = $adapter->fromPsrRequest($source);
+        $source = $this->createRequest('https://user:password@localhost/foo?a=b#c');
+        $target = $this->adapter->fromPsrRequest($source);
 
         self::assertSame('https://user:password@localhost/foo?a=b#c', (string) $target->getUri());
     }
 
     public function testFromPsrRequestReturnsRequestWithEqualMethod(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
-        $source = new PsrRequest(null, 'POST');
-        $target = $adapter->fromPsrRequest($source);
+        $source = $this->createRequest(method: 'POST');
+        $target = $this->adapter->fromPsrRequest($source);
         self::assertSame('POST', $target->getMethod());
     }
 
     public function testFromPsrRequestReturnsRequestWithAllAddedHeaders(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
-        $source = new PsrRequest(null, null, 'php://memory', ['a' => 'b', 'c' => ['d', 'e']]);
-        $target = $adapter->fromPsrRequest($source);
+        $source = $this->createRequest(body: 'php://memory', headers: ['a' => 'b', 'c' => ['d', 'e']]);
+        $target = $this->adapter->fromPsrRequest($source);
 
         $actualHeaders = \array_map([$target, 'getHeaderArray'], ['a', 'c']);
         self::assertSame([['b'], ['d', 'e']], $actualHeaders);
@@ -51,55 +73,45 @@ class PsrAdapterTest extends TestCase
 
     public function testFromPsrRequestReturnsRequestWithSameProtocolVersion(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
-        $source = (new PsrRequest())->withProtocolVersion('2');
-        $target = $adapter->fromPsrRequest($source);
+        $source = ($this->createRequest())->withProtocolVersion('2');
+        $target = $this->adapter->fromPsrRequest($source);
 
         self::assertSame(['2'], $target->getProtocolVersions());
     }
 
     public function testFromPsrRequestReturnsRequestWithMatchingBody(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
-        $source = new PsrRequest();
+        $source = $this->createRequest();
         $source->getBody()->write('body_content');
-        $target = $adapter->fromPsrRequest($source);
+        $target = $this->adapter->fromPsrRequest($source);
 
         self::assertSame('body_content', $this->readBody($target->getBody()));
     }
 
     public function testToPsrRequestReturnsRequestWithEqualUri(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
         $source = new Request('https://user:password@localhost/foo?a=b#c');
 
-        $target = $adapter->toPsrRequest($source);
+        $target = $this->adapter->toPsrRequest($source);
 
         self::assertSame('https://user:password@localhost/foo?a=b#c', (string) $target->getUri());
     }
 
     public function testToPsrRequestReturnsRequestWithEqualMethod(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
         $source = new Request('', 'POST');
 
-        $target = $adapter->toPsrRequest($source);
+        $target = $this->adapter->toPsrRequest($source);
 
         self::assertSame('POST', $target->getMethod());
     }
 
     public function testToPsrRequestReturnsRequestWithAllAddedHeaders(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
         $source = new Request('');
         $source->setHeaders(['a' => 'b', 'c' => ['d', 'e']]);
 
-        $target = $adapter->toPsrRequest($source);
+        $target = $this->adapter->toPsrRequest($source);
 
         $actualHeaders = \array_map([$target, 'getHeader'], ['a', 'c']);
         self::assertSame([['b'], ['d', 'e']], $actualHeaders);
@@ -114,12 +126,10 @@ class PsrAdapterTest extends TestCase
         ?string $selectedVersion,
         string $targetVersion
     ): void {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
         $source = new Request('');
         $source->setProtocolVersions($sourceVersions);
 
-        $target = $adapter->toPsrRequest($source, $selectedVersion);
+        $target = $this->adapter->toPsrRequest($source, $selectedVersion);
 
         self::assertSame($targetVersion, $target->getProtocolVersion());
     }
@@ -135,34 +145,28 @@ class PsrAdapterTest extends TestCase
 
     public function testToPsrRequestThrowsExceptionIfProvidedVersionNotInSource(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
         $source = new Request('');
         $source->setProtocolVersions(['2']);
 
         $this->expectException(PsrHttpClientException::class);
         $this->expectExceptionMessage('Source request doesn\'t support the provided HTTP protocol version: 1.1');
 
-        $adapter->toPsrRequest($source, '1.1');
+        $this->adapter->toPsrRequest($source, '1.1');
     }
 
     public function testToPsrRequestThrowsExceptionIfDefaultVersionNotInSource(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
         $source = new Request('');
         $source->setProtocolVersions(['1.0', '2']);
 
         $this->expectException(PsrHttpClientException::class);
         $this->expectExceptionMessage('Can\'t choose HTTP protocol version automatically: [1.0, 2]');
 
-        $adapter->toPsrRequest($source);
+        $this->adapter->toPsrRequest($source);
     }
 
     public function testToPsrResponseReturnsResponseWithEqualProtocolVersion(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
         $source = new Response(
             '2',
             HttpStatus::OK,
@@ -172,15 +176,13 @@ class PsrAdapterTest extends TestCase
             new Request('')
         );
 
-        $target = $adapter->toPsrResponse($source);
+        $target = $this->adapter->toPsrResponse($source);
 
         self::assertSame('2', $target->getProtocolVersion());
     }
 
     public function testToPsrResponseReturnsResponseWithEqualStatusCode(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
         $source = new Response(
             '1.1',
             HttpStatus::NOT_FOUND,
@@ -190,15 +192,13 @@ class PsrAdapterTest extends TestCase
             new Request('')
         );
 
-        $target = $adapter->toPsrResponse($source);
+        $target = $this->adapter->toPsrResponse($source);
 
         self::assertSame(HttpStatus::NOT_FOUND, $target->getStatusCode());
     }
 
     public function testToPsrResponseReturnsResponseWithEqualReason(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
         $source = new Response(
             '1.1',
             HttpStatus::OK,
@@ -208,15 +208,13 @@ class PsrAdapterTest extends TestCase
             new Request('')
         );
 
-        $target = $adapter->toPsrResponse($source);
+        $target = $this->adapter->toPsrResponse($source);
 
         self::assertSame('a', $target->getReasonPhrase());
     }
 
     public function testToPsrResponseReturnsResponseWithEqualHeaders(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
         $source = new Response(
             '1.1',
             HttpStatus::OK,
@@ -226,15 +224,13 @@ class PsrAdapterTest extends TestCase
             new Request('')
         );
 
-        $target = $adapter->toPsrResponse($source);
+        $target = $this->adapter->toPsrResponse($source);
 
         self::assertSame(['a' => ['b'], 'c' => ['d', 'e']], $target->getHeaders());
     }
 
     public function testToPsrResponseReturnsResponseWithEqualBody(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
         $source = new Response(
             '1.1',
             HttpStatus::OK,
@@ -244,15 +240,13 @@ class PsrAdapterTest extends TestCase
             new Request('')
         );
 
-        $target = $adapter->toPsrResponse($source);
+        $target = $this->adapter->toPsrResponse($source);
 
         self::assertSame('body_content', (string) $target->getBody());
     }
 
     public function testToPsrResponseReturnsResponseWithStreamableBody(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
         $source = new Response(
             '1.1',
             HttpStatus::OK,
@@ -262,7 +256,7 @@ class PsrAdapterTest extends TestCase
             new Request('')
         );
 
-        $target = $adapter->toPsrResponse($source);
+        $target = $this->adapter->toPsrResponse($source);
 
         $body = $target->getBody();
 
@@ -278,34 +272,29 @@ class PsrAdapterTest extends TestCase
 
     public function testFromPsrResponseWithRequestReturnsResultWithSameRequest(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
 
-        $source = new PsrResponse();
+        $source = $this->httpFactory->createResponse();
 
         $request = new Request('');
 
-        $target = $adapter->fromPsrResponse($source, $request);
+        $target = $this->adapter->fromPsrResponse($source, $request);
 
         self::assertSame($request, $target->getRequest());
     }
 
     public function testFromPsrResponseWithoutPreviousResponseReturnsResponseWithoutPreviousResponse(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
-        $source = new PsrResponse();
+        $source = $this->httpFactory->createResponse();
 
         $request = new Request('');
 
-        $target = $adapter->fromPsrResponse($source, $request);
+        $target = $this->adapter->fromPsrResponse($source, $request);
 
         self::assertNull($target->getPreviousResponse());
     }
 
     public function testFromPsrResponseWithPreviousResponseReturnsResponseWithSamePreviousResponse(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
         $previousResponse = new Response(
             '1.1',
             HttpStatus::OK,
@@ -315,60 +304,53 @@ class PsrAdapterTest extends TestCase
             new Request('')
         );
 
-        $source = new PsrResponse();
+        $source = $this->httpFactory->createResponse();
 
-        $target = $adapter->fromPsrResponse($source, new Request(''), $previousResponse);
+        $target = $this->adapter->fromPsrResponse($source, new Request(''), $previousResponse);
 
         self::assertSame($previousResponse, $target->getPreviousResponse());
     }
 
     public function testFromPsrResponseReturnsResultWithEqualProtocolVersion(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
+        $source = $this->httpFactory->createResponse()->withProtocolVersion('2');
 
-        $source = (new PsrResponse())->withProtocolVersion('2');
-
-        $target = $adapter->fromPsrResponse($source, new Request(''));
+        $target = $this->adapter->fromPsrResponse($source, new Request(''));
 
         self::assertSame('2', $target->getProtocolVersion());
     }
 
     public function testFromPsrResponseReturnsResultWithEqualStatus(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
+        $source = $this->httpFactory->createResponse()->withStatus(HttpStatus::NOT_FOUND);
 
-        $source = (new PsrResponse())->withStatus(HttpStatus::NOT_FOUND);
-
-        $target = $adapter->fromPsrResponse($source, new Request(''));
+        $target = $this->adapter->fromPsrResponse($source, new Request(''));
 
         self::assertSame(HttpStatus::NOT_FOUND, $target->getStatus());
     }
 
     public function testFromPsrResponseReturnsResultWithEqualHeaders(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
+        $source = $this->httpFactory->createResponse(HttpStatus::OK);
 
-        $source = new PsrResponse(
-            'php://memory',
-            HttpStatus::OK,
-            ['a' => 'b', 'c' => ['d', 'e']]
-        );
+        $source = $source
+            ->withBody($this->httpFactory->createStreamFromFile('php://memory'))
+            ->withHeader('a', 'b')
+            ->withHeader('c', ['d', 'e']);
 
-        $target = $adapter->fromPsrResponse($source, new Request(''));
+        $target = $this->adapter->fromPsrResponse($source, new Request(''));
 
         self::assertSame(['a' => ['b'], 'c' => ['d', 'e']], $target->getHeaders());
     }
 
     public function testFromPsrResponseReturnsResultWithEqualBody(): void
     {
-        $adapter = new PsrAdapter(new RequestFactory(), new ResponseFactory());
-
-        $source = new PsrResponse();
+        $source = $this->httpFactory->createResponse();
         $source->getBody()->write('body_content');
 
         $request = new Request('');
 
-        $target = $adapter->fromPsrResponse($source, $request);
+        $target = $this->adapter->fromPsrResponse($source, $request);
 
         self::assertSame('body_content', $target->getBody()->buffer());
     }

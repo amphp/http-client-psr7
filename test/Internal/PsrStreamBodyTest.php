@@ -2,7 +2,7 @@
 
 namespace Amp\Http\Client\Psr7\Internal;
 
-use Laminas\Diactoros\StreamFactory;
+use GuzzleHttp\Psr7\HttpFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;
 use function Amp\ByteStream\buffer;
@@ -44,7 +44,7 @@ class PsrStreamBodyTest extends TestCase
 
     public function testCreateBodyStreamResultReadsFromOriginalStream(): void
     {
-        $stream = (new StreamFactory())->createStream('body_content');
+        $stream = (new HttpFactory())->createStream('body_content');
         $body = new PsrStreamBody($stream);
 
         self::assertSame('body_content', buffer($body->getContent()));

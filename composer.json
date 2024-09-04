@@ -44,7 +44,7 @@
         "amphp/phpunit-util": "^3",
         "amphp/php-cs-fixer-config": "^2",
         "phpunit/phpunit": "^9",
-        "laminas/laminas-diactoros": "^2.3",
+        "guzzlehttp/psr7": "^2",
         "psalm/phar": "^5"
     },
     "provide": {

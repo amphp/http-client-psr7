@@ -3,18 +3,17 @@
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Psr7\PsrAdapter;
 use Amp\Http\Client\Psr7\PsrHttpClient;
-use Laminas\Diactoros\RequestFactory;
-use Laminas\Diactoros\ResponseFactory;
+use GuzzleHttp\Psr7\HttpFactory;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$requestFactory = new RequestFactory;
+$psrHttpFactory = new HttpFactory();
 
 $psrHttpClient = new PsrHttpClient(
     HttpClientBuilder::buildDefault(),
-    new PsrAdapter($requestFactory, new ResponseFactory)
+    new PsrAdapter($psrHttpFactory, $psrHttpFactory)
 );
 
-$psrResponse = $psrHttpClient->sendRequest($requestFactory->createRequest('GET', 'https://api.github.com/'));
+$psrResponse = $psrHttpClient->sendRequest($psrHttpFactory->createRequest('GET', 'https://api.github.com/'));
 
 print $psrResponse->getBody();
