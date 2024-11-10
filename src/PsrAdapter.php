@@ -9,11 +9,15 @@ use Amp\Http\Client\Psr7\Internal\PsrStreamBody;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\Response;
 use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Message\MessageInterface as PsrMessage;
 use Psr\Http\Message\RequestFactoryInterface as PsrRequestFactory;
 use Psr\Http\Message\RequestInterface as PsrRequest;
 use Psr\Http\Message\ResponseFactoryInterface as PsrResponseFactory;
 use Psr\Http\Message\ResponseInterface as PsrResponse;
 
+/**
+ * @psalm-import-type ProtocolVersion from Request
+ */
 final class PsrAdapter
 {
     public function __construct(
@@ -27,8 +31,7 @@ final class PsrAdapter
         /** @psalm-suppress ArgumentTypeCoercion Wrong typehints in PSR */
         $target = new Request($source->getUri(), $source->getMethod());
         $target->setHeaders($source->getHeaders());
-        /** @psalm-suppress ArgumentTypeCoercion Wrong typehints in PSR */
-        $target->setProtocolVersions([$source->getProtocolVersion()]);
+        $target->setProtocolVersions([$this->getProtocolVersion($source)]);
         $target->setBody(new PsrStreamBody($source->getBody()));
 
         return $target;
@@ -36,9 +39,8 @@ final class PsrAdapter
 
     public function fromPsrResponse(PsrResponse $source, Request $request, ?Response $previousResponse = null): Response
     {
-        /** @psalm-suppress ArgumentTypeCoercion Wrong typehints in PSR */
         return new Response(
-            $source->getProtocolVersion(),
+            $this->getProtocolVersion($source),
             $source->getStatusCode(),
             $source->getReasonPhrase(),
             $source->getHeaders(),
@@ -112,5 +114,19 @@ final class PsrAdapter
         }
 
         return $target;
+    }
+
+    /**
+     * @return ProtocolVersion
+     */
+    private function getProtocolVersion(PsrMessage $source): string
+    {
+        $protocolVersion = $source->getProtocolVersion();
+
+        return match ($protocolVersion) {
+            '2.0' => '2',
+            '2', '1.1', '1.0' => $protocolVersion,
+            default => throw new \Error('Invalid protocol version: ' . $protocolVersion),
+        };
     }
 }
