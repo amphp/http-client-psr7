@@ -18,7 +18,7 @@ final class PsrMessageStream implements StreamInterface
 
     private int $position = 0;
 
-    public function __construct(private readonly ReadableStream $source)
+    public function __construct(private readonly ReadableStream $source, private readonly ?int $size = null)
     {
     }
 
@@ -64,7 +64,7 @@ final class PsrMessageStream implements StreamInterface
 
     public function getSize(): ?int
     {
-        return null;
+        return $this->size;
     }
 
     public function isReadable(): bool
