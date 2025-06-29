@@ -74,7 +74,10 @@ final class PsrAdapter
             $psrResponse = $psrResponse->withAddedHeader($headerName, $headerValue);
         }
 
-        return $psrResponse->withBody(new PsrMessageStream($response->getBody()));
+        $contentLength = $response->getHeader('Content-Length');
+        $size = $contentLength === null ? null : \max(0, (int) $contentLength);
+
+        return $psrResponse->withBody(new PsrMessageStream($response->getBody(), $size));
     }
 
     /**
