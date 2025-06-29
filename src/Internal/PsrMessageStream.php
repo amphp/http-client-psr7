@@ -16,6 +16,8 @@ final class PsrMessageStream implements StreamInterface
 
     private bool $isEof = false;
 
+    private bool $isClosed = false;
+
     private int $position = 0;
 
     public function __construct(private readonly ReadableStream $source, private readonly ?int $size = null)
@@ -32,6 +34,7 @@ final class PsrMessageStream implements StreamInterface
         $this->source->close();
         $this->buffer = '';
         $this->isEof = true;
+        $this->isClosed = true;
     }
 
     public function detach(): void
@@ -46,6 +49,10 @@ final class PsrMessageStream implements StreamInterface
 
     public function getContents(): string
     {
+        if ($this->isClosed) {
+            throw new \RuntimeException("Stream is closed");
+        }
+
         $buffer = $this->buffer;
         $this->buffer = '';
 
@@ -69,7 +76,7 @@ final class PsrMessageStream implements StreamInterface
 
     public function isReadable(): bool
     {
-        return !$this->eof();
+        return !$this->isClosed;
     }
 
     public function isSeekable(): bool
@@ -84,7 +91,7 @@ final class PsrMessageStream implements StreamInterface
 
     public function read(int $length): string
     {
-        if ($this->eof()) {
+        if ($this->isClosed) {
             throw new \RuntimeException("Stream is closed");
         }
 
