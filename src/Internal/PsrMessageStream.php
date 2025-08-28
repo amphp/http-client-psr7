@@ -37,9 +37,11 @@ final class PsrMessageStream implements StreamInterface
         $this->isClosed = true;
     }
 
-    public function detach(): void
+    public function detach()
     {
         $this->close();
+
+        return null;
     }
 
     public function eof(): bool
