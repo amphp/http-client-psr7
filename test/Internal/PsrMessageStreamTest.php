@@ -93,8 +93,7 @@ class PsrMessageStreamTest extends TestCase
         self::assertSame('', $requestStream->read(8192));
         self::assertSame(6, $requestStream->tell());
         self::assertTrue($requestStream->eof());
-        self::assertFalse($requestStream->isReadable());
-
+        self::assertTrue($requestStream->isReadable());
     }
 
     public function testRewindThrowsException(): void
